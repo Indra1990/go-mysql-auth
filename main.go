@@ -26,5 +26,5 @@ func main() {
 }
 
 // token git
-// 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
+// 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
 // https://www.youtube.com/watch?v=yGTMQ5e-T5E&list=PLkVx132FdJZlTc_1gucKZ00b_s45DQlVQ&index=4
