@@ -3,6 +3,8 @@ package main
 import (
 	"go-mysql-api/config"
 	"go-mysql-api/controller"
+	"go-mysql-api/usecase/user/repoimpl"
+	"go-mysql-api/usecase/user/serviceimpl"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -15,14 +17,22 @@ var (
 
 func main() {
 	defer config.CloseDatabaseConnection(db)
+
+	userRepo := repoimpl.NewGormRepository(db)
+	userService := serviceimpl.NewService(userRepo)
+	userController := controller.NewUserController(userService)
+
 	router := gin.Default()
 	authRoutes := router.Group("api/auth")
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.GET("/user-all", userController.GetUser)
+		authRoutes.POST("/user-create", userController.CreateUser)
 
 	}
-	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	router.Run()
+	// listen and serve on 0.0.0.0:8080
 }
 
 // token git
