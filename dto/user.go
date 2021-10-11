@@ -7,7 +7,11 @@ type UserCreateRequest struct {
 }
 
 type GetUserResponse struct {
-	ID    uint64 `form:"id"`
-	Name  string `form:"name"`
-	Email string `form:"email"`
+	ID    uint64 `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type GetUserByIDRequest struct {
+	ID uint64 `json:"id"`
 }

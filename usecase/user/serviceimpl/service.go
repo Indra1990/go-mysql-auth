@@ -15,13 +15,40 @@ func NewService(repo user.Repository) *Service {
 }
 
 // from db get list user
-func (s *Service) GetUserList() ([]entity.User, error) {
-	ents, err := s.repo.List()
+func (s *Service) GetUserList() ([]dto.GetUserResponse, error) {
+	UserList, err := s.repo.List()
 	if err != nil {
 		return nil, err
 	}
 
-	return ents, nil
+	userDto, err := s.mapUserEntitiesToGetResponseDTOs(UserList)
+	return userDto, err
+}
+
+// map get list user entity to dto
+func (s *Service) mapUserEntitiesToGetResponseDTOs(ents []entity.User) ([]dto.GetUserResponse, error) {
+	result := []dto.GetUserResponse{}
+	for _, usr := range ents {
+		listUser := s.mapUserEntityToGetUserByIDDTO(usr)
+		result = append(result, listUser)
+	}
+
+	return result, nil
+}
+
+// find id user from db
+func (s *Service) UserFindById(dto dto.GetUserByIDRequest) (dto.GetUserResponse, error) {
+	userId, err := s.repo.FindById(dto.ID)
+	usr := s.mapUserEntityToGetUserByIDDTO(userId)
+	return usr, err
+}
+
+func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResponse {
+	return dto.GetUserResponse{
+		ID:    ent.ID,
+		Name:  ent.Name,
+		Email: ent.Email,
+	}
 }
 
 // save to db
@@ -35,7 +62,7 @@ func (s *Service) CreateUser(dto dto.UserCreateRequest) error {
 	return nil
 }
 
-// map dto to entity
+// map dto to entity create user
 func (s *Service) mapUserCreateRequestDTOtoEntity(dto dto.UserCreateRequest) entity.User {
 	return entity.User{
 		Name:     dto.Name,

@@ -24,3 +24,9 @@ func (r *GormRepository) List() ([]entity.User, error) {
 	result := r.db.Find(&ents)
 	return ents, result.Error
 }
+
+func (r *GormRepository) FindById(id uint64) (entity.User, error) {
+	var ent entity.User
+	result := r.db.First(&ent, id)
+	return ent, result.Error
+}

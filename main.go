@@ -28,10 +28,11 @@ func main() {
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 		authRoutes.GET("/user-all", userController.GetUser)
+		authRoutes.GET("/user-profile/:id", userController.FindByIdUser)
 		authRoutes.POST("/user-create", userController.CreateUser)
 
 	}
-	router.Run()
+	router.Run(":3000")
 	// listen and serve on 0.0.0.0:8080
 }
 

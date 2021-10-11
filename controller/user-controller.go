@@ -4,6 +4,7 @@ import (
 	"go-mysql-api/dto"
 	"go-mysql-api/usecase/user"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +12,7 @@ import (
 type UserController interface {
 	GetUser(c *gin.Context)
 	CreateUser(c *gin.Context)
+	FindByIdUser(c *gin.Context)
 }
 
 type userController struct {
@@ -22,8 +24,43 @@ func NewUserController(svc user.Service) UserController {
 }
 
 func (u userController) GetUser(ctx *gin.Context) {
+	dto, err := u.service.GetUserList()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user all",
+		"users":   dto,
+	})
+}
+
+func (u userController) FindByIdUser(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	requestDTO := dto.GetUserByIDRequest{
+		ID: uint64(id),
+	}
+
+	responseDTO, err := u.service.UserFindById(requestDTO)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "get data user by id",
+		"data":    responseDTO,
 	})
 }
 
