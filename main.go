@@ -27,9 +27,9 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
-		authRoutes.GET("/user-all", userController.GetUser)
-		authRoutes.GET("/user-profile/:id", userController.FindByIdUser)
-		authRoutes.POST("/user-create", userController.CreateUser)
+		authRoutes.GET("/user", userController.GetUser)
+		authRoutes.GET("/user/:id", userController.FindByIdUser)
+		authRoutes.POST("/user/create-new", userController.CreateUser)
 
 	}
 	router.Run(":3000")
@@ -37,5 +37,5 @@ func main() {
 }
 
 // token git
-// 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
+// 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
 // https://www.youtube.com/watch?v=yGTMQ5e-T5E&list=PLkVx132FdJZlTc_1gucKZ00b_s45DQlVQ&index=4
