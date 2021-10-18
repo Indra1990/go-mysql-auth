@@ -13,6 +13,8 @@ type UserController interface {
 	GetUser(c *gin.Context)
 	CreateUser(c *gin.Context)
 	FindByIdUser(c *gin.Context)
+	UpdateUser(c *gin.Context)
+	DeleteUser(c *gin.Context)
 }
 
 type userController struct {
@@ -72,4 +74,45 @@ func (u userController) CreateUser(ctx *gin.Context) {
 		"message": "user created",
 		"data":    dto,
 	})
+}
+
+func (u userController) UpdateUser(ctx *gin.Context) {
+
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	var dto dto.UserUpdateRequest
+	ctx.Bind(&dto)
+	dto.ID = id
+	u.service.UpdateUser(dto)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "user updated",
+		"data":    dto,
+	})
+}
+
+func (u userController) DeleteUser(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	var dto dto.GetUserByIDRequest
+	dto.ID = id
+	u.service.DeleteUser(dto)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "user deleted",
+		// "data":    dto,
+	})
+
 }

@@ -30,3 +30,14 @@ func (r *GormRepository) FindById(id uint64) (entity.User, error) {
 	result := r.db.First(&ent, id)
 	return ent, result.Error
 }
+
+func (r *GormRepository) Update(ent entity.User) error {
+	result := r.db.Model(&ent).Updates(ent)
+	return result.Error
+}
+
+func (r *GormRepository) Delete(id uint64) error {
+	var ent entity.User
+	result := r.db.Delete(&ent, id)
+	return result.Error
+}

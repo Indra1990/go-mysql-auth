@@ -15,3 +15,9 @@ type GetUserResponse struct {
 type GetUserByIDRequest struct {
 	ID uint64 `json:"id"`
 }
+
+type UserUpdateRequest struct {
+	ID    uint64
+	Name  string `form:"name"`
+	Email string `form:"email"`
+}

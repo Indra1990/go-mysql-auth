@@ -70,3 +70,26 @@ func (s *Service) mapUserCreateRequestDTOtoEntity(dto dto.UserCreateRequest) ent
 		Password: dto.Password,
 	}
 }
+
+func (s *Service) UpdateUser(dto dto.UserUpdateRequest) error {
+	ent := s.mapUserUpdateRequestDTOtoEntity(dto)
+	err := s.repo.Update(ent)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) mapUserUpdateRequestDTOtoEntity(dto dto.UserUpdateRequest) entity.User {
+	return entity.User{
+		ID:    dto.ID,
+		Name:  dto.Name,
+		Email: dto.Email,
+	}
+}
+
+func (s *Service) DeleteUser(dto dto.GetUserByIDRequest) error {
+	err := s.repo.Delete(dto.ID)
+	return err
+}

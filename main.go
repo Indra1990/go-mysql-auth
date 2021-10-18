@@ -30,6 +30,8 @@ func main() {
 		authRoutes.GET("/user", userController.GetUser)
 		authRoutes.GET("/user/:id", userController.FindByIdUser)
 		authRoutes.POST("/user/create-new", userController.CreateUser)
+		authRoutes.POST("/user/update/:id", userController.UpdateUser)
+		authRoutes.DELETE("/user/delete/:id", userController.DeleteUser)
 
 	}
 	router.Run(":3000")
