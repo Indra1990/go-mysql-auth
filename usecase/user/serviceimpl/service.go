@@ -4,6 +4,7 @@ import (
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/user"
+	// "github.com/go-playground/validator"
 )
 
 type Service struct {
@@ -53,6 +54,7 @@ func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResp
 
 // save to db
 func (s *Service) CreateUser(dto dto.UserCreateRequest) error {
+
 	ent := s.mapUserCreateRequestDTOtoEntity(dto)
 	err := s.repo.Create(ent)
 	if err != nil {

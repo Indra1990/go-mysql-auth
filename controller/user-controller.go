@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"fmt"
 	"go-mysql-api/dto"
 	"go-mysql-api/usecase/user"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type UserController interface {
@@ -68,6 +70,15 @@ func (u userController) FindByIdUser(ctx *gin.Context) {
 
 func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
+	if errDto := ctx.ShouldBind(&dto); errDto != nil {
+		for _, fieldErr := range errDto.(validator.ValidationErrors) {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"msg": fmt.Sprintf("%s", fieldErr),
+			})
+			return
+		}
+	}
+
 	ctx.Bind(&dto)
 	u.service.CreateUser(dto)
 	ctx.JSON(http.StatusOK, gin.H{

@@ -1,8 +1,8 @@
 package dto
 
 type UserCreateRequest struct {
-	Name     string `form:"name"`
-	Email    string `form:"email"`
+	Name     string `form:"name" binding:"required"`
+	Email    string `form:"email"  binding:"email,required"`
 	Password string `form:"password"`
 }
 
