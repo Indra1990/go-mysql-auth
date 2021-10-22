@@ -3,6 +3,8 @@ package main
 import (
 	"go-mysql-api/config"
 	"go-mysql-api/controller"
+	"go-mysql-api/usecase/book/repoimplbook"
+	"go-mysql-api/usecase/book/serviceimplbook"
 	"go-mysql-api/usecase/user/repoimpl"
 	"go-mysql-api/usecase/user/serviceimpl"
 
@@ -22,6 +24,10 @@ func main() {
 	userService := serviceimpl.NewService(userRepo)
 	userController := controller.NewUserController(userService)
 
+	bookRepo := repoimplbook.NewGormRepositoryBook(db)
+	bookService := serviceimplbook.NewServiceBook(bookRepo)
+	bookControoller := controller.NewBookController(bookService)
+
 	router := gin.Default()
 	authRoutes := router.Group("api/auth")
 	{
@@ -32,6 +38,8 @@ func main() {
 		authRoutes.POST("/user/create-new", userController.CreateUser)
 		authRoutes.POST("/user/update/:id", userController.UpdateUser)
 		authRoutes.DELETE("/user/delete/:id", userController.DeleteUser)
+		// book
+		authRoutes.POST("book/create-new", bookControoller.CreateBook)
 
 	}
 	router.Run(":3000")

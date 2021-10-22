@@ -70,6 +70,7 @@ func (u userController) FindByIdUser(ctx *gin.Context) {
 
 func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
+	// validation
 	if errDto := ctx.ShouldBind(&dto); errDto != nil {
 		for _, fieldErr := range errDto.(validator.ValidationErrors) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
