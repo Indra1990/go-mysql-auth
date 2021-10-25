@@ -31,3 +31,32 @@ func (s *Service) mapBookCreateRequestDTOtoEntity(dto dto.BookCreateRequest) ent
 		UserID:      uint(dto.UserID),
 	}
 }
+
+func (s *Service) GetBookList() ([]dto.GetBookResponse, error) {
+	bookList, err := s.repo.ListBook()
+	if err != nil {
+		return nil, err
+	}
+	bookDto, err := s.mapBookGetResponseEntityToDTO(bookList)
+	return bookDto, err
+}
+
+func (s *Service) mapBookGetResponseEntityToDTO(ents []entity.Book) ([]dto.GetBookResponse, error) {
+	result := []dto.GetBookResponse{}
+	for _, book := range ents {
+		dataBook := dto.GetBookResponse{
+			ID:          book.ID,
+			Title:       book.Title,
+			Description: book.Description,
+			User: dto.User{
+				ID:    book.User.ID,
+				Name:  book.User.Name,
+				Email: book.User.Email,
+			},
+		}
+
+		result = append(result, dataBook)
+	}
+
+	return result, nil
+}

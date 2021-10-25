@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"go-mysql-api/dto"
 	"go-mysql-api/usecase/user"
 	"net/http"
@@ -71,16 +70,26 @@ func (u userController) FindByIdUser(ctx *gin.Context) {
 func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
 	// validation
-	if errDto := ctx.ShouldBind(&dto); errDto != nil {
-		for _, fieldErr := range errDto.(validator.ValidationErrors) {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"msg": fmt.Sprintf("%s", fieldErr),
-			})
-			return
-		}
-	}
+	// if errDto := ctx.ShouldBind(&dto); errDto != nil {
+	// 	for _, fieldErr := range errDto.(validator.ValidationErrors) {
+	// 		ctx.JSON(http.StatusBadRequest, gin.H{
+	// 			"msg": fmt.Sprintf("%s", fieldErr),
+	// 		})
+	// 		return
+	// 	}
+	// }
 
 	ctx.Bind(&dto)
+	validate := validator.New()
+	err := validate.Struct(&dto)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
+
+		return
+	}
+
 	u.service.CreateUser(dto)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user created",

@@ -6,9 +6,11 @@ import (
 )
 
 type Repository interface {
+	ListBook() ([]entity.Book, error)
 	Create(ent entity.Book) error
 }
 
 type Service interface {
 	CreateBook(dto dto.BookCreateRequest) error
+	GetBookList() ([]dto.GetBookResponse, error)
 }

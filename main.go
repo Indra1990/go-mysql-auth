@@ -40,6 +40,7 @@ func main() {
 		authRoutes.DELETE("/user/delete/:id", userController.DeleteUser)
 		// book
 		authRoutes.POST("book/create-new", bookControoller.CreateBook)
+		authRoutes.GET("books", bookControoller.GetBooks)
 
 	}
 	router.Run(":3000")

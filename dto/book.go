@@ -5,3 +5,16 @@ type BookCreateRequest struct {
 	Description string `form:"description" `
 	UserID      int64  `form:"user_id" `
 }
+
+type GetBookResponse struct {
+	ID          uint64 `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	User        User   `json:"user"`
+}
+
+type User struct {
+	ID    uint64 `json:"iduser"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
