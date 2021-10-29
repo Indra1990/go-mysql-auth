@@ -29,8 +29,26 @@ func (s *Service) GetUserList() ([]dto.GetUserResponse, error) {
 // map get list user entity to dto
 func (s *Service) mapUserEntitiesToGetResponseDTOs(ents []entity.User) ([]dto.GetUserResponse, error) {
 	result := []dto.GetUserResponse{}
+	resultbook := []dto.BookResponse{}
+
 	for _, usr := range ents {
-		listUser := s.mapUserEntityToGetUserByIDDTO(usr)
+		for _, bk := range usr.Book {
+			listBook := dto.BookResponse{
+				ID : bk.ID,
+				Title :bk.Title,
+				Description : bk.Description,
+				UserID : bk.UserID,
+			}
+			resultbook = append(resultbook,listBook)
+		}
+		
+		listUser := dto.GetUserResponse{
+			ID:    usr.ID,
+			Name:  usr.Name,
+			Email: usr.Email, 
+			Book : resultbook,
+		}
+		// listUser := s.mapUserEntityToGetUserByIDDTO(usr)
 		result = append(result, listUser)
 	}
 
@@ -48,7 +66,7 @@ func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResp
 	return dto.GetUserResponse{
 		ID:    ent.ID,
 		Name:  ent.Name,
-		Email: ent.Email,
+		Email: ent.Email, 
 	}
 }
 

@@ -10,11 +10,20 @@ type GetUserResponse struct {
 	ID    uint64 `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
+	Book  []BookResponse `json:"books"`
+}
+
+type BookResponse struct {
+	ID          uint64 `json:"idbook"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	UserID 		uint   `json:"user_id"`
 }
 
 type GetUserByIDRequest struct {
 	ID uint64 `json:"id"`
 }
+
 
 type UserUpdateRequest struct {
 	ID    uint64
