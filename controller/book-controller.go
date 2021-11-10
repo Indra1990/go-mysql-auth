@@ -37,6 +37,14 @@ func (book bookControoller) GetBooks(ctx *gin.Context) {
 func (book bookControoller) CreateBook(ctx *gin.Context) {
 	var dto dto.BookCreateRequest
 
+	err := dto.Validate()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err,
+			// "book":    dto,
+		})
+		return
+	}
 	ctx.Bind(&dto)
 	book.service.CreateBook(dto)
 	ctx.JSON(http.StatusOK, gin.H{

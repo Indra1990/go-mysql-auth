@@ -13,4 +13,5 @@ type Repository interface {
 type Service interface {
 	CreateBook(dto dto.BookCreateRequest) error
 	GetBookList() ([]dto.GetBookResponse, error)
+	ValidateRequest(dto dto.BookCreateRequest) error
 }

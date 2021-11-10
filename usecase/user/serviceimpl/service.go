@@ -4,6 +4,8 @@ import (
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/user"
+
+	"golang.org/x/crypto/bcrypt"
 	// "github.com/go-playground/validator"
 )
 
@@ -21,7 +23,6 @@ func (s *Service) GetUserList() ([]dto.GetUserResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	userDto, err := s.mapUserEntitiesToGetResponseDTOs(UserList)
 	return userDto, err
 }
@@ -29,26 +30,31 @@ func (s *Service) GetUserList() ([]dto.GetUserResponse, error) {
 // map get list user entity to dto
 func (s *Service) mapUserEntitiesToGetResponseDTOs(ents []entity.User) ([]dto.GetUserResponse, error) {
 	result := []dto.GetUserResponse{}
-	resultbook := []dto.BookResponse{}
-
+	// resultbook := []dto.BookResponse{}
+	var resultbook []dto.BookResponse
 	for _, usr := range ents {
-		for _, bk := range usr.Book {
+
+		for _, bk := range usr.Books {
 			listBook := dto.BookResponse{
-				ID : bk.ID,
-				Title :bk.Title,
-				Description : bk.Description,
-				UserID : bk.UserID,
+				ID:          bk.ID,
+				Title:       bk.Title,
+				Description: bk.Description,
+				UserID:      bk.UserID,
 			}
-			resultbook = append(resultbook,listBook)
+			resultbook = append(resultbook, listBook)
+			// fmt.Println(resultbook)
+
 		}
-		
+		sata := resultbook
+		// break
 		listUser := dto.GetUserResponse{
 			ID:    usr.ID,
 			Name:  usr.Name,
-			Email: usr.Email, 
-			Book : resultbook,
+			Email: usr.Email,
+			Books: sata,
+			// resultbook,
 		}
-		// listUser := s.mapUserEntityToGetUserByIDDTO(usr)
+		// // listUser := s.mapUserEntityToGetUserByIDDTO(usr)
 		result = append(result, listUser)
 	}
 
@@ -66,13 +72,12 @@ func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResp
 	return dto.GetUserResponse{
 		ID:    ent.ID,
 		Name:  ent.Name,
-		Email: ent.Email, 
+		Email: ent.Email,
 	}
 }
 
 // save to db
 func (s *Service) CreateUser(dto dto.UserCreateRequest) error {
-
 	ent := s.mapUserCreateRequestDTOtoEntity(dto)
 	err := s.repo.Create(ent)
 	if err != nil {
@@ -84,11 +89,18 @@ func (s *Service) CreateUser(dto dto.UserCreateRequest) error {
 
 // map dto to entity create user
 func (s *Service) mapUserCreateRequestDTOtoEntity(dto dto.UserCreateRequest) entity.User {
+	hash, _ := s.hashPassword(dto.Password)
 	return entity.User{
 		Name:     dto.Name,
 		Email:    dto.Email,
-		Password: dto.Password,
+		Password: hash,
 	}
+}
+
+// hash password user
+func (s *Service) hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
 func (s *Service) UpdateUser(dto dto.UserUpdateRequest) error {

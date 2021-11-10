@@ -4,6 +4,8 @@ import (
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/book"
+
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 type Service struct {
@@ -30,6 +32,20 @@ func (s *Service) mapBookCreateRequestDTOtoEntity(dto dto.BookCreateRequest) ent
 		Description: dto.Description,
 		UserID:      uint(dto.UserID),
 	}
+}
+
+func (s *Service) ValidateRequest(dto dto.BookCreateRequest) error {
+	// var dto dto.BookCreateRequest
+	err := validation.ValidateStruct(&dto,
+		validation.Field(&dto.Title, validation.Required),
+		validation.Field(&dto.Description, validation.Required),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) GetBookList() ([]dto.GetBookResponse, error) {

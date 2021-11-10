@@ -1,13 +1,21 @@
 package controller
 
 import (
+	"go-mysql-api/config"
 	"go-mysql-api/dto"
+	"go-mysql-api/entity"
 	"go-mysql-api/usecase/user"
 	"net/http"
 	"strconv"
 
+	"github.com/badoux/checkmail"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
+)
+
+var (
+	db *gorm.DB = config.SetupDatabaseConnection()
+	// authController controller.AuthController = controller.NewAuthController()
 )
 
 type UserController interface {
@@ -27,16 +35,19 @@ func NewUserController(svc user.Service) UserController {
 }
 
 func (u userController) GetUser(ctx *gin.Context) {
-	dto, err := u.service.GetUserList()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
+	// dto, err := u.service.GetUserList()
+	// if err != nil {
+	// 	ctx.JSON(http.StatusInternalServerError, gin.H{
+	// 		"error": err.Error(),
+	// 	})
+	// 	return
+	// }
+	var ents []entity.User
+	db.Debug().Preload("Books").Find(&ents)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user all",
-		"users":   dto,
+		// "users":   ents,
+		"users": ents,
 	})
 }
 
@@ -69,27 +80,24 @@ func (u userController) FindByIdUser(ctx *gin.Context) {
 
 func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
-	// validation
-	// if errDto := ctx.ShouldBind(&dto); errDto != nil {
-	// 	for _, fieldErr := range errDto.(validator.ValidationErrors) {
-	// 		ctx.JSON(http.StatusBadRequest, gin.H{
-	// 			"msg": fmt.Sprintf("%s", fieldErr),
-	// 		})
-	// 		return
-	// 	}
-	// }
+	var ent entity.User
 
-	ctx.Bind(&dto)
-	validate := validator.New()
-	err := validate.Struct(&dto)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
-
+	if err := ctx.ShouldBind(&dto); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	if checkEmail := checkmail.ValidateFormat(dto.Email); checkEmail != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": checkEmail.Error()})
+		return
+	}
+
+	if emailExists := db.Raw("SELECT id, name, email FROM users = ?", dto.Email).First(&ent); emailExists != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "email already exist"})
+		return
+	}
+
+	ctx.Bind(&dto)
 	u.service.CreateUser(dto)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user created",

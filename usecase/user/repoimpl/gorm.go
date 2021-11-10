@@ -21,7 +21,7 @@ func (r *GormRepository) Create(ent entity.User) error {
 
 func (r *GormRepository) List() ([]entity.User, error) {
 	var ents []entity.User
-	result := r.db.Preload("Book").Find(&ents)
+	result := r.db.Debug().Preload("Books").Find(&ents)
 	return ents, result.Error
 }
 
