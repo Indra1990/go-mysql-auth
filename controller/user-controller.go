@@ -15,7 +15,6 @@ import (
 
 var (
 	db *gorm.DB = config.SetupDatabaseConnection()
-	// authController controller.AuthController = controller.NewAuthController()
 )
 
 type UserController interface {
@@ -82,7 +81,8 @@ func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
 	var ent entity.User
 
-	if err := ctx.ShouldBind(&dto); err != nil {
+	ctx.Bind(&dto)
+	if err := dto.Validate(); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -92,17 +92,18 @@ func (u userController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	if emailExists := db.Raw("SELECT id, name, email FROM users = ?", dto.Email).First(&ent); emailExists != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "email already exist"})
+	emailExist := db.Where("email = ?", dto.Email).Limit(1).First(&ent)
+	if emailExist.RowsAffected == 1 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Already Email Exist"})
 		return
 	}
 
-	ctx.Bind(&dto)
 	u.service.CreateUser(dto)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user created",
 		"data":    dto,
 	})
+
 }
 
 func (u userController) UpdateUser(ctx *gin.Context) {

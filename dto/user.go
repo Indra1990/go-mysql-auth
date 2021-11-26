@@ -1,17 +1,19 @@
 package dto
 
-import validation "github.com/go-ozzo/ozzo-validation"
+import (
+	validation "github.com/go-ozzo/ozzo-validation"
+)
 
 type UserCreateRequest struct {
-	Name     string `form:"name" json:"name" xml:"user" binding:"required"`
-	Email    string `form:"email" json:"email" xml:"email" binding:"required"`
-	Password string `form:"password" json:"-"  xml:"password"  binding:"required"`
+	Name     string `form:"name" json:"name"`
+	Email    string `form:"email" json:"email"`
+	Password string `form:"password" json:"-"`
 }
 
 func (user UserCreateRequest) Validate() error {
 	return validation.ValidateStruct(&user,
-		validation.Field(&user.Name, validation.Required.Error("Name is Required")),
-		validation.Field(&user.Email, validation.Required.Error("Email is Required")),
+		validation.Field(&user.Name, validation.Required.Error("is Required")),
+		validation.Field(&user.Email, validation.Required.Error("is Required")),
 	)
 }
 

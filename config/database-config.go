@@ -3,11 +3,13 @@ package config
 import (
 	"fmt"
 	"go-mysql-api/entity"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func SetupDatabaseConnection() *gorm.DB {
@@ -21,8 +23,19 @@ func SetupDatabaseConnection() *gorm.DB {
 	dbHost := os.Getenv("DB_HOST")
 	dbName := os.Getenv("DB_NAME")
 
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			IgnoreRecordNotFoundError: false, // Ignore ErrRecordNotFound error for logger
+			// SlowThreshold:             time.Second,   // Slow SQL threshold
+			// LogLevel:                  logger.Silent, // Log level
+			// Colorful:                  false,         // Disable color
+		},
+	)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		panic("Failed to create connection")

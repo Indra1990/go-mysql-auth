@@ -5,7 +5,7 @@ import (
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/book"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/gosimple/slug"
 )
 
 type Service struct {
@@ -27,25 +27,13 @@ func (s *Service) CreateBook(dto dto.BookCreateRequest) error {
 }
 
 func (s *Service) mapBookCreateRequestDTOtoEntity(dto dto.BookCreateRequest) entity.Book {
+	slug := slug.Make(dto.Title)
 	return entity.Book{
 		Title:       dto.Title,
 		Description: dto.Description,
+		Slug:        slug,
 		UserID:      uint(dto.UserID),
 	}
-}
-
-func (s *Service) ValidateRequest(dto dto.BookCreateRequest) error {
-	// var dto dto.BookCreateRequest
-	err := validation.ValidateStruct(&dto,
-		validation.Field(&dto.Title, validation.Required),
-		validation.Field(&dto.Description, validation.Required),
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *Service) GetBookList() ([]dto.GetBookResponse, error) {
@@ -63,6 +51,7 @@ func (s *Service) mapBookGetResponseEntityToDTO(ents []entity.Book) ([]dto.GetBo
 		dataBook := dto.GetBookResponse{
 			ID:          book.ID,
 			Title:       book.Title,
+			Slug:        book.Slug,
 			Description: book.Description,
 			User: dto.User{
 				ID:    book.User.ID,
