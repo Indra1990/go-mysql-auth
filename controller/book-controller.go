@@ -11,11 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// var (
-// 	db *gorm.DB = config.SetupDatabaseConnection()
-// 	// authController controller.AuthController = controller.NewAuthController()
-// )
-
 type BookControoller interface {
 	CreateBook(c *gin.Context)
 	GetBooks(c *gin.Context)

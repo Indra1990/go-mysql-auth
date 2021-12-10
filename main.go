@@ -3,6 +3,8 @@ package main
 import (
 	"go-mysql-api/config"
 	"go-mysql-api/controller"
+	"go-mysql-api/usecase/auth/repoauth"
+	"go-mysql-api/usecase/auth/serviceauth"
 	"go-mysql-api/usecase/book/repoimplbook"
 	"go-mysql-api/usecase/book/serviceimplbook"
 	"go-mysql-api/usecase/user/repoimpl"
@@ -13,12 +15,16 @@ import (
 )
 
 var (
-	db             *gorm.DB                  = config.SetupDatabaseConnection()
-	authController controller.AuthController = controller.NewAuthController()
+	db *gorm.DB = config.SetupDatabaseConnection()
+	// authController controller.AuthController = controller.NewAuthController()
 )
 
 func main() {
 	defer config.CloseDatabaseConnection(db)
+
+	authRepo := repoauth.NewAuthGormRepository(db)
+	authService := serviceauth.NewAuthService(authRepo)
+	authController := controller.NewAuthController(authService)
 
 	userRepo := repoimpl.NewGormRepository(db)
 	userService := serviceimpl.NewService(userRepo)
@@ -29,10 +35,12 @@ func main() {
 	bookControoller := controller.NewBookController(bookService)
 
 	router := gin.Default()
+	router.POST("/login", authController.Login)
+
 	authRoutes := router.Group("api/auth")
 	{
-		authRoutes.POST("/login", authController.Login)
-		authRoutes.POST("/register", authController.Register)
+		// authRoutes.POST("/register", loginController.Register)
+
 		authRoutes.GET("/user", userController.GetUser)
 		authRoutes.GET("/user/:id", userController.FindByIdUser)
 		authRoutes.POST("/user/create-new", userController.CreateUser)

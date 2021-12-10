@@ -1,20 +1,13 @@
 package controller
 
 import (
-	"go-mysql-api/config"
 	"go-mysql-api/dto"
-	"go-mysql-api/entity"
 	"go-mysql-api/usecase/user"
 	"net/http"
 	"strconv"
 
 	"github.com/badoux/checkmail"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
-
-var (
-	db *gorm.DB = config.SetupDatabaseConnection()
 )
 
 type UserController interface {
@@ -34,19 +27,18 @@ func NewUserController(svc user.Service) UserController {
 }
 
 func (u userController) GetUser(ctx *gin.Context) {
-	// dto, err := u.service.GetUserList()
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, gin.H{
-	// 		"error": err.Error(),
-	// 	})
-	// 	return
-	// }
-	var ents []entity.User
-	db.Debug().Preload("Books").Find(&ents)
+	dto, err := u.service.GetUserList()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	ctx.Bind(&dto)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user all",
 		// "users":   ents,
-		"users": ents,
+		"users": dto,
 	})
 }
 
@@ -79,22 +71,21 @@ func (u userController) FindByIdUser(ctx *gin.Context) {
 
 func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
-	var ent entity.User
 
 	ctx.Bind(&dto)
+
 	if err := dto.Validate(); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	if checkEmail := checkmail.ValidateFormat(dto.Email); checkEmail != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": checkEmail.Error()})
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": checkEmail.Error()})
 		return
 	}
 
-	emailExist := db.Where("email = ?", dto.Email).Limit(1).First(&ent)
-	if emailExist.RowsAffected == 1 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Already Email Exist"})
+	if validEmailExist := u.service.CheckEmailExist(dto.Email); validEmailExist {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Already email exist"})
 		return
 	}
 
@@ -142,7 +133,6 @@ func (u userController) DeleteUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user deleted",
-		// "data":    dto,
 	})
 
 }

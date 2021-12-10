@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/appleboy/gin-jwt v2.5.0+incompatible // indirect
 	github.com/badoux/checkmail v1.2.1 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.7.4 // indirect
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect

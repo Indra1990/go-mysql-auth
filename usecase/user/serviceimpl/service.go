@@ -30,10 +30,9 @@ func (s *Service) GetUserList() ([]dto.GetUserResponse, error) {
 // map get list user entity to dto
 func (s *Service) mapUserEntitiesToGetResponseDTOs(ents []entity.User) ([]dto.GetUserResponse, error) {
 	result := []dto.GetUserResponse{}
-	// resultbook := []dto.BookResponse{}
-	var resultbook []dto.BookResponse
 	for _, usr := range ents {
 
+		resultbook := []dto.BookResponse{}
 		for _, bk := range usr.Books {
 			listBook := dto.BookResponse{
 				ID:          bk.ID,
@@ -42,22 +41,16 @@ func (s *Service) mapUserEntitiesToGetResponseDTOs(ents []entity.User) ([]dto.Ge
 				UserID:      bk.UserID,
 			}
 			resultbook = append(resultbook, listBook)
-			// fmt.Println(resultbook)
-
 		}
-		sata := resultbook
-		// break
+
 		listUser := dto.GetUserResponse{
 			ID:    usr.ID,
 			Name:  usr.Name,
 			Email: usr.Email,
-			Books: sata,
-			// resultbook,
+			Books: resultbook,
 		}
-		// // listUser := s.mapUserEntityToGetUserByIDDTO(usr)
 		result = append(result, listUser)
 	}
-
 	return result, nil
 }
 
@@ -85,6 +78,15 @@ func (s *Service) CreateUser(dto dto.UserCreateRequest) error {
 	}
 
 	return nil
+}
+
+// check email already exist
+func (s *Service) CheckEmailExist(email string) bool {
+	errEmail := s.repo.EmailExist(email)
+	if errEmail {
+		return errEmail
+	}
+	return false
 }
 
 // map dto to entity create user

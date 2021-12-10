@@ -41,3 +41,11 @@ func (r *GormRepository) Delete(id uint64) error {
 	result := r.db.Delete(&ent, id)
 	return result.Error
 }
+
+func (r *GormRepository) EmailExist(email string) bool {
+	var ent entity.User
+	if err := r.db.Where("email = ?", email).Limit(1).First(&ent); err.RowsAffected == 1 {
+		return true
+	}
+	return false
+}

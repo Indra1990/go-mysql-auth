@@ -17,6 +17,13 @@ func (user UserCreateRequest) Validate() error {
 	)
 }
 
+type GetAuthUserResponse struct {
+	ID       uint64 `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type GetUserResponse struct {
 	ID    uint64         `json:"id"`
 	Name  string         `json:"name"`
@@ -39,4 +46,16 @@ type UserUpdateRequest struct {
 	ID    uint64
 	Name  string `form:"name"`
 	Email string `form:"email"`
+}
+
+type GetAuthUserRequest struct {
+	Email    string `form:"email"`
+	Password string `form:"password"`
+}
+
+func (user GetAuthUserRequest) ValidateAuthLogin() error {
+	return validation.ValidateStruct(&user,
+		validation.Field(&user.Email, validation.Required.Error("is Required")),
+		validation.Field(&user.Password, validation.Required.Error("is Required")),
+	)
 }

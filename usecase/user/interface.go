@@ -11,6 +11,7 @@ type Repository interface {
 	FindById(id uint64) (entity.User, error)
 	Update(ent entity.User) error
 	Delete(id uint64) error
+	EmailExist(email string) bool
 }
 
 type Service interface {
@@ -19,4 +20,5 @@ type Service interface {
 	CreateUser(dto dto.UserCreateRequest) error
 	UpdateUser(dto dto.UserUpdateRequest) error
 	DeleteUser(dto dto.GetUserByIDRequest) error
+	CheckEmailExist(email string) bool
 }
