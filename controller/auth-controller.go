@@ -12,6 +12,7 @@ import (
 
 type AuthControoller interface {
 	Login(c *gin.Context)
+	CekToken(c *gin.Context)
 	// GetBooks(c *gin.Context)
 }
 
@@ -61,4 +62,22 @@ func (u authControoller) Login(ctx *gin.Context) {
 		"access_token": token,
 		"time":         time.Now().Unix(),
 	})
+}
+
+func (u authControoller) CekToken(ctx *gin.Context) {
+	tkn, err := u.service.ValidateToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE2Mzk1NTIzNjQsInVzZXJfaWQiOjUzfQ.TLsi50GjrgwENGUIfOjGbR2dqb-JrFBFpXj1DAOl9TA")
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Token Invalid",
+		})
+		return
+	}
+
+	if tkn.Valid {
+		ctx.JSON(http.StatusAccepted, gin.H{
+			"message": "TOKEN VALID",
+		})
+		return
+	}
 }

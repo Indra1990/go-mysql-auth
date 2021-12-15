@@ -1,6 +1,7 @@
 package serviceauth
 
 import (
+	"errors"
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/auth"
@@ -43,4 +44,21 @@ func (auth *Service) mapUserEntityToGetUserByAuthDTO(ent entity.User) dto.GetUse
 		Name:  ent.Name,
 		Email: ent.Email,
 	}
+}
+
+func (auth *Service) ValidateToken(tokenEncoded string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenEncoded, func(tokenEncoded *jwt.Token) (interface{}, error) {
+		_, okay := tokenEncoded.Method.(*jwt.SigningMethodHMAC)
+		if !okay {
+			return nil, errors.New("invalid token")
+		}
+
+		return []byte(os.Getenv("ACCESS_SECRET_KEY")), nil
+	})
+
+	if err != nil {
+		return token, err
+	}
+
+	return token, nil
 }

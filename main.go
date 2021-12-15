@@ -35,11 +35,12 @@ func main() {
 	bookControoller := controller.NewBookController(bookService)
 
 	router := gin.Default()
-	router.POST("/login", authController.Login)
+	// router.POST("/register", authController.Register)
+	router.POST("/api/v1/login", authController.Login)
+	router.POST("/api/v1/cek-token", authController.CekToken)
 
 	authRoutes := router.Group("api/auth")
 	{
-		// authRoutes.POST("/register", loginController.Register)
 
 		authRoutes.GET("/user", userController.GetUser)
 		authRoutes.GET("/user/:id", userController.FindByIdUser)
