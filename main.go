@@ -3,14 +3,19 @@ package main
 import (
 	"go-mysql-api/config"
 	"go-mysql-api/controller"
+	"go-mysql-api/dto"
+	"go-mysql-api/helper"
 	"go-mysql-api/usecase/auth/repoauth"
 	"go-mysql-api/usecase/auth/serviceauth"
 	"go-mysql-api/usecase/book/repoimplbook"
 	"go-mysql-api/usecase/book/serviceimplbook"
 	"go-mysql-api/usecase/user/repoimpl"
 	"go-mysql-api/usecase/user/serviceimpl"
+	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gopkg.in/dgrijalva/jwt-go.v3"
 	"gorm.io/gorm"
 )
 
@@ -42,7 +47,7 @@ func main() {
 	authRoutes := router.Group("api/auth")
 	{
 
-		authRoutes.GET("/user", userController.GetUser)
+		authRoutes.GET("/user", authMiddleware(*authService, *userService), userController.GetUser)
 		authRoutes.GET("/user/:id", userController.FindByIdUser)
 		authRoutes.POST("/user/create-new", userController.CreateUser)
 		authRoutes.POST("/user/update/:id", userController.UpdateUser)
@@ -54,6 +59,52 @@ func main() {
 	}
 	router.Run(":3000")
 	// listen and serve on 0.0.0.0:8080
+}
+
+func authMiddleware(authService serviceauth.Service, userService serviceimpl.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		authHeader := c.GetHeader("Authorization")
+		if !strings.Contains(authHeader, "Bearer") {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		tokenString := ""
+		arrayToken := strings.Split(authHeader, " ")
+		if len(arrayToken) == 2 {
+			tokenString = arrayToken[1]
+		}
+
+		token, err := authService.ValidateToken(tokenString)
+		if err != nil {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		userID := int(claims["user_id"].(float64))
+
+		user, err := userService.UserFindById(dto.GetUserByIDRequest{ID: uint64(userID)})
+		c.JSON(http.StatusOK, gin.H{
+			"message": "user all",
+			"users":   user,
+		})
+		if err != nil {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		c.Set("currentUser", user)
+	}
 }
 
 // token git

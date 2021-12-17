@@ -3,6 +3,7 @@ package user
 import (
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
+	"net/http"
 )
 
 type Repository interface {
@@ -21,4 +22,5 @@ type Service interface {
 	UpdateUser(dto dto.UserUpdateRequest) error
 	DeleteUser(dto dto.GetUserByIDRequest) error
 	CheckEmailExist(email string) bool
+	ExtractToken(r *http.Request) string
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"go-mysql-api/dto"
+	"go-mysql-api/helper"
 	"go-mysql-api/usecase/user"
 	"net/http"
 	"strconv"
@@ -34,11 +35,12 @@ func (u userController) GetUser(ctx *gin.Context) {
 		})
 		return
 	}
+	// currentUser := ctx.MustGet("currentUser").user
 	ctx.Bind(&dto)
+	res := helper.APIResponse("get user all", http.StatusOK, "success", dto)
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "user all",
-		// "users":   ents,
-		"users": dto,
+		"users":   res,
 	})
 }
 

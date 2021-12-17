@@ -4,6 +4,8 @@ import (
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/user"
+	"net/http"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 	// "github.com/go-playground/validator"
@@ -126,4 +128,14 @@ func (s *Service) mapUserUpdateRequestDTOtoEntity(dto dto.UserUpdateRequest) ent
 func (s *Service) DeleteUser(dto dto.GetUserByIDRequest) error {
 	err := s.repo.Delete(dto.ID)
 	return err
+}
+
+func (auth *Service) ExtractToken(r *http.Request) string {
+	bearToken := r.Header.Get("Authorization")
+	//normally Authorization the_token_xxx
+	strArr := strings.Split(bearToken, " ")
+	if len(strArr) == 2 {
+		return strArr[1]
+	}
+	return ""
 }

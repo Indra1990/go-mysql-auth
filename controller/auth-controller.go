@@ -2,9 +2,9 @@ package controller
 
 import (
 	"go-mysql-api/dto"
+	"go-mysql-api/helper"
 	"go-mysql-api/usecase/auth"
 	"net/http"
-	"time"
 
 	"github.com/badoux/checkmail"
 	"github.com/gin-gonic/gin"
@@ -48,6 +48,7 @@ func (u authControoller) Login(ctx *gin.Context) {
 		return
 	}
 
+	// return
 	token, errToken := u.service.CreateToken(authUser.ID)
 	if errToken != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -55,12 +56,13 @@ func (u authControoller) Login(ctx *gin.Context) {
 		})
 		return
 	}
+	// tkn := u.service.ExtractToken(ctx.Request)
+	res := helper.APIResponse("login success", http.StatusOK, "success", authUser)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":      "Login",
-		"users":        authUser,
 		"access_token": token,
-		"time":         time.Now().Unix(),
+		"users":        res,
 	})
 }
 

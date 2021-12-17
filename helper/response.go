@@ -1,34 +1,27 @@
 package helper
 
-import "strings"
-
 type Response struct {
-	Status  bool        `json:"status"`
-	Message string      `json:"message"`
-	Error   interface{} `json:"errors"`
-	Data    interface{} `json:"data"`
+	Meta Meta
+	Data interface{}
 }
 
-type EmptyObj struct{}
+type Meta struct {
+	Message string
+	Code    int
+	Status  string
+}
 
-func BuildResponse(status bool, message string, data interface{}) Response {
-	res := Response{
+func APIResponse(message string, code int, status string, data interface{}) Response {
+	meta := Meta{
+		Message: message,
+		Code:    code,
 		Status:  status,
-		Message: message,
-		Error:   nil,
-		Data:    data,
 	}
 
-	return res
-}
-
-func BuildErrorResponse(message string, err string, data interface{}) Response {
-	splittedError := strings.Split(err, "\n")
-	res := Response{
-		Status:  false,
-		Message: message,
-		Error:   splittedError,
-		Data:    data,
+	JsonResponse := Response{
+		Meta: meta,
+		Data: data,
 	}
-	return res
+
+	return JsonResponse
 }
