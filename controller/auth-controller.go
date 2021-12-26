@@ -6,7 +6,6 @@ import (
 	"go-mysql-api/usecase/auth"
 	"net/http"
 
-	"github.com/badoux/checkmail"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,14 +28,9 @@ func (u authControoller) Login(ctx *gin.Context) {
 	ctx.Bind(&dto)
 
 	if validateLogin := dto.ValidateAuthLogin(); validateLogin != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-			"message": validateLogin.Error(),
-		})
-		return
-	}
+		res := helper.APIResponse("get user failed", http.StatusUnprocessableEntity, "error", validateLogin)
 
-	if checkEmail := checkmail.ValidateFormat(dto.Email); checkEmail != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": checkEmail.Error()})
+		ctx.JSON(http.StatusUnprocessableEntity, res)
 		return
 	}
 

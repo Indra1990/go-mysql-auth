@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/badoux/checkmail"
 	"github.com/gin-gonic/gin"
 )
 
@@ -78,11 +77,6 @@ func (u userController) CreateUser(ctx *gin.Context) {
 
 	if err := dto.Validate(); err != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	if checkEmail := checkmail.ValidateFormat(dto.Email); checkEmail != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": checkEmail.Error()})
 		return
 	}
 

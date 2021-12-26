@@ -2,6 +2,7 @@ package dto
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
 )
 
 type UserCreateRequest struct {
@@ -55,7 +56,7 @@ type GetAuthUserRequest struct {
 
 func (user GetAuthUserRequest) ValidateAuthLogin() error {
 	return validation.ValidateStruct(&user,
-		validation.Field(&user.Email, validation.Required.Error("is Required")),
+		validation.Field(&user.Email, validation.Required.Error("is Required"), is.Email),
 		validation.Field(&user.Password, validation.Required.Error("is Required")),
 	)
 }

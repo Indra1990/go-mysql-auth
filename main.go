@@ -14,8 +14,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/dgrijalva/jwt-go.v3"
 	"gorm.io/gorm"
 )
 
@@ -45,9 +45,10 @@ func main() {
 	router.POST("/api/v1/cek-token", authController.CekToken)
 
 	authRoutes := router.Group("api/auth")
+	authRoutes.Use(authMiddleware(*authService, *userService))
 	{
 
-		authRoutes.GET("/user", authMiddleware(*authService, *userService), userController.GetUser)
+		authRoutes.GET("/user", userController.GetUser)
 		authRoutes.GET("/user/:id", userController.FindByIdUser)
 		authRoutes.POST("/user/create-new", userController.CreateUser)
 		authRoutes.POST("/user/update/:id", userController.UpdateUser)
