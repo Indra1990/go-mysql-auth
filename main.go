@@ -21,7 +21,6 @@ import (
 
 var (
 	db *gorm.DB = config.SetupDatabaseConnection()
-	// authController controller.AuthController = controller.NewAuthController()
 )
 
 func main() {
@@ -40,11 +39,11 @@ func main() {
 	bookControoller := controller.NewBookController(bookService)
 
 	router := gin.Default()
-	// router.POST("/register", authController.Register)
+	router.POST("/api/v1/register", authController.Register)
 	router.POST("/api/v1/login", authController.Login)
 	router.POST("/api/v1/cek-token", authController.CekToken)
 
-	authRoutes := router.Group("api/auth")
+	authRoutes := router.Group("api/v1/auth")
 	authRoutes.Use(authMiddleware(*authService, *userService))
 	{
 
@@ -95,16 +94,16 @@ func authMiddleware(authService serviceauth.Service, userService serviceimpl.Ser
 		userID := int(claims["user_id"].(float64))
 
 		user, err := userService.UserFindById(dto.GetUserByIDRequest{ID: uint64(userID)})
-		c.JSON(http.StatusOK, gin.H{
-			"message": "user all",
-			"users":   user,
-		})
+
 		if err != nil {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 			return
 		}
+
 		c.Set("currentUser", user)
+		c.Set("iduser", userID)
+
 	}
 }
 

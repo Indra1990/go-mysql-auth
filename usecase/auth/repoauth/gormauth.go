@@ -3,7 +3,6 @@ package repoauth
 import (
 	"go-mysql-api/entity"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -14,22 +13,20 @@ type AuthGormRepository struct {
 func NewAuthGormRepository(db *gorm.DB) *AuthGormRepository {
 	return &AuthGormRepository{db}
 }
-
-func (auth AuthGormRepository) AuthLogin(email string, password string) (entity.User, error) {
-	var usr entity.User
-	result := auth.db.Where("email = ?", email).First(&usr)
-	if result.RowsAffected == 1 {
-		if checkHash := checkPassword(usr.Password, password); checkHash != nil {
-			return usr, checkHash
-		}
+func (auth AuthGormRepository) UserRegister(ent entity.User) (entity.User, error) {
+	err := auth.db.Create(&ent).Error
+	if err != nil {
+		return ent, err
 	}
-	return usr, result.Error
+	return ent, err
 }
 
-func checkPassword(hashedPassword string, password string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+func (auth AuthGormRepository) FindByID(email string) (entity.User, error) {
+	var usr entity.User
+	err := auth.db.Where("email", email).Find(&usr).Error
 	if err != nil {
-		return err
+		return usr, err
 	}
-	return nil
+
+	return usr, nil
 }

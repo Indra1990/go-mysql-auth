@@ -32,7 +32,7 @@ func SetupDatabaseConnection() *gorm.DB {
 			// Colorful:                  false,         // Disable color
 		},
 	)
-	dsn := fmt.Sprintf("%s:%s#@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})

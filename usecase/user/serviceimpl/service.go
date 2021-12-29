@@ -72,14 +72,18 @@ func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResp
 }
 
 // save to db
-func (s *Service) CreateUser(dto dto.UserCreateRequest) error {
-	ent := s.mapUserCreateRequestDTOtoEntity(dto)
-	err := s.repo.Create(ent)
+func (s *Service) CreateUser(dto dto.UserCreateRequest) (dto.GetUserResponse, error) {
+	userCreate := entity.User{}
+	userCreate.Name = dto.Name
+	userCreate.Email = dto.Email
+	password, _ := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.MinCost)
+	userCreate.Password = string(password)
+	user, err := s.repo.Create(userCreate)
+	ent := s.mapUserCreateEntityTODTO(user)
 	if err != nil {
-		return err
+		return ent, err
 	}
-
-	return nil
+	return ent, nil
 }
 
 // check email already exist
@@ -92,19 +96,13 @@ func (s *Service) CheckEmailExist(email string) bool {
 }
 
 // map dto to entity create user
-func (s *Service) mapUserCreateRequestDTOtoEntity(dto dto.UserCreateRequest) entity.User {
-	hash, _ := s.hashPassword(dto.Password)
-	return entity.User{
-		Name:     dto.Name,
-		Email:    dto.Email,
-		Password: hash,
+func (s *Service) mapUserCreateEntityTODTO(ent entity.User) dto.GetUserResponse {
+	return dto.GetUserResponse{
+		ID:    ent.ID,
+		Name:  ent.Name,
+		Email: ent.Email,
 	}
-}
 
-// hash password user
-func (s *Service) hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
 }
 
 func (s *Service) UpdateUser(dto dto.UserUpdateRequest) error {
@@ -132,7 +130,6 @@ func (s *Service) DeleteUser(dto dto.GetUserByIDRequest) error {
 
 func (auth *Service) ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
-	//normally Authorization the_token_xxx
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) == 2 {
 		return strArr[1]

@@ -14,14 +14,17 @@ func NewGormRepository(db *gorm.DB) *GormRepository {
 	return &GormRepository{db}
 }
 
-func (r *GormRepository) Create(ent entity.User) error {
-	result := r.db.Create(&ent)
-	return result.Error
+func (r *GormRepository) Create(ent entity.User) (entity.User, error) {
+	resultErr := r.db.Create(&ent)
+	if resultErr != nil {
+		return ent, resultErr.Error
+	}
+	return ent, nil
 }
 
 func (r *GormRepository) List() ([]entity.User, error) {
 	var ents []entity.User
-	result := r.db.Debug().Preload("Books").Find(&ents)
+	result := r.db.Preload("Books").Find(&ents)
 	return ents, result.Error
 }
 

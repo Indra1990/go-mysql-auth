@@ -1,4 +1,4 @@
-package validatorimpl
+package validatorauth
 
 import (
 	"go-mysql-api/dto"
@@ -7,14 +7,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
-func ValidateAuthLogin(dto dto.GetAuthUserRequest) error {
-	return validation.ValidateStruct(&dto,
-		validation.Field(&dto.Email, validation.Required.Error("is Required"), is.Email),
-		validation.Field(&dto.Password, validation.Required.Error("is Required")),
-	)
-}
-
-func ValidationCreateUser(dto dto.UserCreateRequest) error {
+func ValidateRegister(dto dto.UserCreateRequest) error {
 	return validation.ValidateStruct(&dto,
 		validation.Field(&dto.Name, validation.Required.Error("is Required")),
 		validation.Field(&dto.Email, validation.Required.Error("is Required"), is.Email),

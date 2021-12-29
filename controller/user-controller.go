@@ -4,6 +4,7 @@ import (
 	"go-mysql-api/dto"
 	"go-mysql-api/helper"
 	"go-mysql-api/usecase/user"
+	"go-mysql-api/usecase/user/validatorimpl"
 	"net/http"
 	"strconv"
 
@@ -29,26 +30,28 @@ func NewUserController(svc user.Service) UserController {
 func (u userController) GetUser(ctx *gin.Context) {
 	dto, err := u.service.GetUserList()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		resErr := helper.APIResponse("user all failed", http.StatusBadRequest, "error", err.Error())
+		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
-	// currentUser := ctx.MustGet("currentUser").user
+
+	if err != nil {
+		resErr := helper.APIResponse("user all failed", http.StatusInternalServerError, "error", err.Error())
+		ctx.JSON(http.StatusBadRequest, resErr)
+		return
+	}
+
 	ctx.Bind(&dto)
 	res := helper.APIResponse("get user all", http.StatusOK, "success", dto)
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "user all",
-		"users":   res,
-	})
+
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u userController) FindByIdUser(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
+		resErr := helper.APIResponse("user detail failed", http.StatusBadRequest, "error", err.Error())
+		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
 
@@ -56,50 +59,48 @@ func (u userController) FindByIdUser(ctx *gin.Context) {
 		ID: uint64(id),
 	}
 
-	responseDTO, err := u.service.UserFindById(requestDTO)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-		})
+	responseDTO, errFindUser := u.service.UserFindById(requestDTO)
+	if errFindUser != nil {
+		resErr := helper.APIResponse("user detail failed", http.StatusBadRequest, "error", errFindUser.Error())
+		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "get data user by id",
-		"data":    responseDTO,
-	})
+	res := helper.APIResponse("user detail", http.StatusOK, "success", responseDTO)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u userController) CreateUser(ctx *gin.Context) {
 	var dto dto.UserCreateRequest
-
 	ctx.Bind(&dto)
 
-	if err := dto.Validate(); err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+	if err := validatorimpl.ValidationCreateUser(dto); err != nil {
+		errValidate := helper.APIResponse("user failed create", http.StatusUnprocessableEntity, "error", err)
+		ctx.JSON(http.StatusUnprocessableEntity, errValidate)
 		return
 	}
 
 	if validEmailExist := u.service.CheckEmailExist(dto.Email); validEmailExist {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Already email exist"})
+		errValidate := helper.APIResponse("user failed create", http.StatusUnprocessableEntity, "error", gin.H{"email": "Already email exist"})
+		ctx.JSON(http.StatusUnprocessableEntity, errValidate)
 		return
 	}
 
-	u.service.CreateUser(dto)
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "user created",
-		"data":    dto,
-	})
+	userCreated, userCreatedErr := u.service.CreateUser(dto)
+	if userCreatedErr != nil {
+		errValidate := helper.APIResponse("user failed create", http.StatusUnprocessableEntity, "error", userCreatedErr)
+		ctx.JSON(http.StatusUnprocessableEntity, errValidate)
+		return
+	}
 
+	res := helper.APIResponse("created user", http.StatusOK, "success", userCreated)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u userController) UpdateUser(ctx *gin.Context) {
-
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
+		resErr := helper.APIResponse("user update failed", http.StatusBadRequest, "error", err.Error())
+		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
 
@@ -108,18 +109,15 @@ func (u userController) UpdateUser(ctx *gin.Context) {
 	dto.ID = id
 	u.service.UpdateUser(dto)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "user updated",
-		"data":    dto,
-	})
+	res := helper.APIResponse("updated user", http.StatusOK, "success", dto)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (u userController) DeleteUser(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
+		resErr := helper.APIResponse("user delete failed", http.StatusBadRequest, "error", err.Error())
+		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
 
@@ -127,8 +125,6 @@ func (u userController) DeleteUser(ctx *gin.Context) {
 	dto.ID = id
 	u.service.DeleteUser(dto)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "user deleted",
-	})
-
+	res := helper.APIResponse("updated user", http.StatusOK, "success", gin.H{"delted": "successfully deleted"})
+	ctx.JSON(http.StatusOK, res)
 }

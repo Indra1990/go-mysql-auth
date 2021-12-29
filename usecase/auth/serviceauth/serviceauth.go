@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -17,11 +18,38 @@ type Service struct {
 func NewAuthService(auth auth.Repository) *Service {
 	return &Service{auth}
 }
+func (auth *Service) RegisterUserInput(dto dto.UserCreateRequest) (dto.GetUserResponse, error) {
+	user := entity.User{}
+	user.Name = dto.Name
+	user.Email = dto.Email
+	password, _ := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.MinCost)
+	user.Password = string(password)
+	usrRegis, err := auth.repo.UserRegister(user)
+	usr := auth.mapUserEntityToGetUserByAuthDTO(usrRegis)
+	if err != nil {
+		return usr, err
+	}
+
+	return usr, nil
+}
 
 func (auth *Service) DoLogin(dto dto.GetAuthUserRequest) (dto.GetUserResponse, error) {
-	user, err := auth.repo.AuthLogin(dto.Email, dto.Password)
+	user, err := auth.repo.FindByID(dto.Email)
 	usr := auth.mapUserEntityToGetUserByAuthDTO(user)
-	return usr, err
+
+	if err != nil {
+		return usr, err
+	}
+
+	if user.ID == 0 {
+		return usr, errors.New("user not Found")
+	}
+
+	comparePasswordErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
+	if comparePasswordErr != nil {
+		return usr, comparePasswordErr
+	}
+	return usr, nil
 }
 
 func (auth *Service) CreateToken(userId uint64) (string, error) {

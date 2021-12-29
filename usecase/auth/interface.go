@@ -9,12 +9,14 @@ import (
 
 // for function db gorm
 type Repository interface {
-	AuthLogin(email string, password string) (entity.User, error)
+	FindByID(email string) (entity.User, error)
+	UserRegister(ent entity.User) (entity.User, error)
 }
 
 // for function to controller
 type Service interface {
 	DoLogin(dto dto.GetAuthUserRequest) (dto.GetUserResponse, error)
+	RegisterUserInput(dto dto.UserCreateRequest) (dto.GetUserResponse, error)
 	CreateToken(userid uint64) (string, error)
 	ValidateToken(tokenEncoded string) (*jwt.Token, error)
 }
