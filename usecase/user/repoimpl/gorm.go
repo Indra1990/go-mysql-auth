@@ -30,7 +30,7 @@ func (r *GormRepository) List() ([]entity.User, error) {
 
 func (r *GormRepository) FindById(id uint64) (entity.User, error) {
 	var ent entity.User
-	result := r.db.First(&ent, id)
+	result := r.db.Preload("Books").First(&ent, id)
 	return ent, result.Error
 }
 

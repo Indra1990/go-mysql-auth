@@ -64,10 +64,22 @@ func (s *Service) UserFindById(dto dto.GetUserByIDRequest) (dto.GetUserResponse,
 }
 
 func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResponse {
+	resultBook := []dto.BookResponse{}
+	for _, valueBook := range ent.Books {
+		result := dto.BookResponse{
+			ID:          valueBook.ID,
+			Title:       valueBook.Title,
+			Description: valueBook.Description,
+			UserID:      valueBook.UserID,
+		}
+
+		resultBook = append(resultBook, result)
+	}
 	return dto.GetUserResponse{
 		ID:    ent.ID,
 		Name:  ent.Name,
 		Email: ent.Email,
+		Books: resultBook,
 	}
 }
 

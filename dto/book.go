@@ -1,21 +1,10 @@
 package dto
 
-import (
-	validation "github.com/go-ozzo/ozzo-validation"
-)
-
 type BookCreateRequest struct {
 	Title       string `form:"title"`
 	Description string `form:"description"`
 	Slug        string `form:"slug" json:"-"`
-	UserID      int64  `form:"user_id"`
-}
-
-func (req BookCreateRequest) Validate() error {
-	return validation.ValidateStruct(&req,
-		validation.Field(&req.Title, validation.Required.Error("Title is Required")),
-		validation.Field(&req.Description, validation.Required.Error("Description is Required")),
-	)
+	UserID      int64  `form:"user_id" json:"-"`
 }
 
 type GetBookResponse struct {
@@ -23,6 +12,7 @@ type GetBookResponse struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Slug        string `json:"slug"`
+	UserID      int    `json:"user_id"`
 	User        User   `json:"user"`
 }
 

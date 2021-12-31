@@ -1,24 +1,19 @@
 package controller
 
 import (
-	"go-mysql-api/config"
 	"go-mysql-api/dto"
-	"go-mysql-api/entity"
+	"go-mysql-api/helper"
 	"go-mysql-api/usecase/book"
+	"go-mysql-api/usecase/book/validatorbook"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type BookControoller interface {
 	CreateBook(c *gin.Context)
 	GetBooks(c *gin.Context)
 }
-
-var (
-	dbBook *gorm.DB = config.SetupDatabaseConnection()
-)
 
 type bookControoller struct {
 	service book.Service
@@ -43,26 +38,28 @@ func (book bookControoller) GetBooks(ctx *gin.Context) {
 
 func (book bookControoller) CreateBook(ctx *gin.Context) {
 	var dto dto.BookCreateRequest
-	var entBook entity.Book
 
 	ctx.Bind(&dto)
-	err := dto.Validate()
+	err := validatorbook.BookValidation(dto)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": err,
-		})
+		resErr := helper.APIResponse("create book failed", http.StatusUnprocessableEntity, "error", err)
+		ctx.JSON(http.StatusUnprocessableEntity, resErr)
 		return
 	}
 
-	titleExist := dbBook.Where("title = ?", dto.Title).Limit(1).First(&entBook)
-	if titleExist.RowsAffected == 1 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Already Title Exist"})
+	if titleExist := book.service.ExistTitleBook(dto.Title); !titleExist {
+		resErr := helper.APIResponse("create book failed", http.StatusUnprocessableEntity, "errro", gin.H{"title": "title already exist"})
+		ctx.JSON(http.StatusUnprocessableEntity, resErr)
 		return
 	}
 
-	book.service.CreateBook(dto)
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "book created",
-		"book":    dto,
-	})
+	errBook := book.service.CreateBook(dto, ctx.MustGet("iduser").(int))
+	if errBook != nil {
+		resErr := helper.APIResponse("create book failed", http.StatusUnprocessableEntity, "error", errBook)
+		ctx.JSON(http.StatusUnprocessableEntity, resErr)
+		return
+	}
+
+	res := helper.APIResponse("user detail", http.StatusOK, "success", dto)
+	ctx.JSON(http.StatusOK, res)
 }

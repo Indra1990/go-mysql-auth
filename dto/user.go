@@ -6,13 +6,6 @@ type UserCreateRequest struct {
 	Password string `form:"password" json:"password"`
 }
 
-// func (user UserCreateRequest) Validate() error {
-// 	return validation.ValidateStruct(&user,
-// 		validation.Field(&user.Name, validation.Required.Error("is Required")),
-// 		validation.Field(&user.Email, validation.Required.Error("is Required"), is.Email),
-// 	)
-// }
-
 type GetAuthUserResponse struct {
 	ID       uint64 `json:"id"`
 	Name     string `json:"name"`

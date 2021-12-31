@@ -16,24 +16,22 @@ func NewServiceBook(repo book.Repository) *Service {
 	return &Service{repo}
 }
 
-func (s *Service) CreateBook(dto dto.BookCreateRequest) error {
-	mapDTO := s.mapBookCreateRequestDTOtoEntity(dto)
-	insertBook := s.repo.Create(mapDTO)
-	if insertBook != nil {
-		return insertBook
-
+func (s *Service) CreateBook(dto dto.BookCreateRequest, iduser int) error {
+	book := entity.Book{}
+	book.Title = dto.Title
+	book.Description = dto.Description
+	book.Slug = slug.Make(dto.Title)
+	book.UserID = uint(iduser)
+	book, err := s.repo.Create(book)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *Service) mapBookCreateRequestDTOtoEntity(dto dto.BookCreateRequest) entity.Book {
-	slug := slug.Make(dto.Title)
-	return entity.Book{
-		Title:       dto.Title,
-		Description: dto.Description,
-		Slug:        slug,
-		UserID:      uint(dto.UserID),
-	}
+func (s *Service) ExistTitleBook(title string) bool {
+	errBool := s.repo.CheckTitleBook(title)
+	return errBool
 }
 
 func (s *Service) GetBookList() ([]dto.GetBookResponse, error) {
