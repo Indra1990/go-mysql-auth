@@ -29,6 +29,25 @@ func (s *Service) CreateBook(dto dto.BookCreateRequest, iduser int) error {
 	return nil
 }
 
+func (s *Service) BookCreateMultipleRequest(dto []dto.BookCreateMultipleRequest, iduser int) error {
+	books := []entity.Book{}
+	for _, dtobook := range dto {
+		result := entity.Book{
+			Title:       dtobook.Title,
+			Description: dtobook.Description,
+			Slug:        slug.Make(dtobook.Title),
+			UserID:      uint(iduser),
+		}
+		books = append(books, result)
+	}
+
+	err := s.repo.CreateMultiple(books)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Service) ExistTitleBook(title string) bool {
 	errBool := s.repo.CheckTitleBook(title)
 	return errBool
@@ -41,6 +60,59 @@ func (s *Service) GetBookList() ([]dto.GetBookResponse, error) {
 	}
 	bookDto, err := s.mapBookGetResponseEntityToDTO(bookList)
 	return bookDto, err
+}
+
+func (s *Service) BookFindByID(idbook int) (dto.GetBookResponse, error) {
+	var dto dto.GetBookResponse
+	book, err := s.repo.FindByIDBook(idbook)
+	dtoBook := s.mapBookFindIDentitytoDTO(book)
+	if err != nil {
+		return dto, err
+	}
+	return dtoBook, nil
+}
+
+func (s *Service) BookUpdated(idbook int, dto dto.BookUpdateRequest) error {
+	updateBook, err := s.repo.FindByIDBook(int(idbook))
+	if err != nil {
+		return err
+	}
+	updateBook.ID = uint64(idbook)
+	updateBook.Title = dto.Title
+	updateBook.Description = dto.Description
+	updateBook.Slug = slug.Make(dto.Title)
+	updatedErr := s.repo.UpdateBook(updateBook)
+	if updatedErr != nil {
+		return updatedErr
+	}
+	return nil
+}
+
+func (s *Service) BookDelete(idbook int) error {
+	book, err := s.repo.FindByIDBook(idbook)
+	if err != nil {
+		return err
+	}
+	delBook := s.repo.DeleteBook(book)
+	if delBook != nil {
+		return delBook
+	}
+	return nil
+}
+
+func (s *Service) mapBookFindIDentitytoDTO(ent entity.Book) dto.GetBookResponse {
+	return dto.GetBookResponse{
+		ID:          ent.ID,
+		Title:       ent.Title,
+		Description: ent.Description,
+		Slug:        ent.Slug,
+		UserID:      int(ent.ID),
+		User: dto.User{
+			ID:    ent.User.ID,
+			Name:  ent.User.Name,
+			Email: ent.User.Email,
+		},
+	}
 }
 
 func (s *Service) mapBookGetResponseEntityToDTO(ents []entity.Book) ([]dto.GetBookResponse, error) {
@@ -57,9 +129,7 @@ func (s *Service) mapBookGetResponseEntityToDTO(ents []entity.Book) ([]dto.GetBo
 				Email: book.User.Email,
 			},
 		}
-
 		result = append(result, dataBook)
 	}
-
 	return result, nil
 }

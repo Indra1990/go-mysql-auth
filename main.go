@@ -46,15 +46,18 @@ func main() {
 	authRoutes := router.Group("api/v1/auth")
 	authRoutes.Use(authMiddleware(*authService, *userService))
 	{
-
 		authRoutes.GET("/user", userController.GetUser)
 		authRoutes.GET("/user/:id", userController.FindByIdUser)
 		authRoutes.POST("/user/create-new", userController.CreateUser)
 		authRoutes.POST("/user/update/:id", userController.UpdateUser)
 		authRoutes.DELETE("/user/delete/:id", userController.DeleteUser)
 		// book
-		authRoutes.POST("book/create-new", bookControoller.CreateBook)
 		authRoutes.GET("books", bookControoller.GetBooks)
+		authRoutes.POST("books/create-new", bookControoller.CreateBook)
+		authRoutes.POST("books/create-new-multiple", bookControoller.CreateBookMultiple)
+		authRoutes.GET("books/:id", bookControoller.FindByIdBook)
+		authRoutes.POST("books/:id/update", bookControoller.UpdateBook)
+		authRoutes.DELETE("books/:id/delete", bookControoller.DeleteBook)
 
 	}
 	router.Run(":3000")
@@ -102,7 +105,6 @@ func authMiddleware(authService serviceauth.Service, userService serviceimpl.Ser
 		}
 
 		c.Set("currentUser", user)
-		c.Set("iduser", userID)
 
 	}
 }

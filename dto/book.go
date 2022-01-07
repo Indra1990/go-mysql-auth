@@ -6,6 +6,18 @@ type BookCreateRequest struct {
 	Slug        string `form:"slug" json:"-"`
 	UserID      int64  `form:"user_id" json:"-"`
 }
+type BookCreateMultipleRequest struct {
+	Title       string `form:"title"`
+	Description string `form:"description"`
+	Slug        string `form:"slug" json:"-"`
+	UserID      int64  `form:"user_id" json:"-"`
+}
+type BookUpdateRequest struct {
+	// ID          int
+	Title       string `form:"title"`
+	Description string `form:"description"`
+	Slug        string `form:"slug" json:"-"`
+}
 
 type GetBookResponse struct {
 	ID          uint64 `json:"id"`
@@ -13,7 +25,7 @@ type GetBookResponse struct {
 	Description string `json:"description"`
 	Slug        string `json:"slug"`
 	UserID      int    `json:"user_id"`
-	User        User   `json:"user"`
+	User        User   `json:"users"`
 }
 
 type User struct {
