@@ -21,6 +21,8 @@ type Service interface {
 	GetBookList() ([]dto.GetBookResponse, error)
 	ExistTitleBook(title string) bool
 	BookFindByID(idbook int) (dto.GetBookResponse, error)
-	BookUpdated(idbook int, dto dto.BookUpdateRequest) error
+	BookUpdated(idbook int, currentLogged int, dto dto.BookUpdateRequest) error
+	BookUpdatedMultiple(dto []dto.BookUpdateMultipleRequest) error
 	BookDelete(idbook int) error
+	BookDeleteMultiple(dto []dto.BookDeleteMultiple) (bool, error)
 }

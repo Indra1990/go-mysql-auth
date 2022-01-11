@@ -77,9 +77,9 @@ func (book bookControoller) CreateBookMultiple(ctx *gin.Context) {
 	}
 
 	user := ctx.MustGet("currentUser").(dto.GetUserResponse)
-	errReqMulti := book.service.BookCreateMultipleRequest(bookRequestMultiple, int(user.ID))
 
-	if err != nil {
+	errReqMulti := book.service.BookCreateMultipleRequest(bookRequestMultiple, int(user.ID))
+	if errReqMulti != nil {
 		ctx.JSON(http.StatusBadRequest, errReqMulti)
 		return
 	}
@@ -109,8 +109,8 @@ func (book bookControoller) FindByIdBook(ctx *gin.Context) {
 }
 
 func (book *bookControoller) UpdateBook(ctx *gin.Context) {
-	var dto dto.BookUpdateRequest
-	ctx.Bind(&dto)
+	var bookUpdateRequest dto.BookUpdateRequest
+	ctx.Bind(&bookUpdateRequest)
 
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -119,33 +119,84 @@ func (book *bookControoller) UpdateBook(ctx *gin.Context) {
 		return
 	}
 
-	errValidator := validatorbook.BookValidationUpdate(dto)
+	errValidator := validatorbook.BookValidationUpdate(bookUpdateRequest)
 	if errValidator != nil {
 		resErr := helper.APIResponse("create book failed", http.StatusUnprocessableEntity, "error", errValidator)
 		ctx.JSON(http.StatusUnprocessableEntity, resErr)
 		return
 	}
 
-	resultErr := book.service.BookUpdated(int(id), dto)
+	userLogged := ctx.MustGet("currentUser").(dto.GetUserResponse)
+	resultErr := book.service.BookUpdated(int(id), int(userLogged.ID), bookUpdateRequest)
 	if resultErr != nil {
-		resErr := helper.APIResponse("Update book failed", http.StatusBadRequest, "error", resultErr.Error())
+		resErr := helper.APIResponse("Update book failed", http.StatusBadRequest, "error", gin.H{"error": resultErr.Error()})
 		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto)
+	ctx.JSON(http.StatusOK, bookUpdateRequest)
+}
+
+func (book *bookControoller) UpdateBookMultiple(ctx *gin.Context) {
+	var UpdateBookMultiple []dto.BookUpdateMultipleRequest
+	ctx.Bind(&UpdateBookMultiple)
+
+	for _, updValidate := range UpdateBookMultiple {
+		updErrValidate := validatorbook.BookValidationUpdateMultiple(updValidate)
+		if updErrValidate != nil {
+			resErr := helper.APIResponse("updated book failed", http.StatusUnprocessableEntity, "error", updErrValidate)
+			ctx.JSON(http.StatusUnprocessableEntity, resErr)
+			return
+		}
+	}
+
+	saveErr := book.service.BookUpdatedMultiple(UpdateBookMultiple)
+	if saveErr != nil {
+		resErr := helper.APIResponse("updated book failed", http.StatusBadRequest, "error", gin.H{"error": saveErr.Error()})
+		ctx.JSON(http.StatusBadRequest, resErr)
+		return
+	}
+
+	response := helper.APIResponse("update book success", http.StatusOK, "success", UpdateBookMultiple)
+	ctx.JSON(http.StatusOK, response)
 }
 
 func (book *bookControoller) DeleteBook(ctx *gin.Context) {
-
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		resErr := helper.APIResponse("Delete book failed", http.StatusBadRequest, "error", err.Error())
 		ctx.JSON(http.StatusBadRequest, resErr)
 		return
 	}
-	book.service.BookDelete(int(id))
+	errBook := book.service.BookDelete(int(id))
+	if errBook != nil {
+		resErr := helper.APIResponse("Delete book failed", http.StatusBadRequest, "error", gin.H{
+			"error":   errBook.Error(),
+			"deleted": false,
+		})
+		ctx.JSON(http.StatusBadRequest, resErr)
+		return
+	}
 
-	ctx.JSON(http.StatusOK, gin.H{"deleted": true})
+	response := helper.APIResponse("update book success", http.StatusOK, "success", gin.H{
+		"error":   nil,
+		"deleted": true,
+	})
 
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (book *bookControoller) DeleteBookMultiple(ctx *gin.Context) {
+	var deleteMulti []dto.BookDeleteMultiple
+	ctx.Bind(&deleteMulti)
+
+	boolean, errDel := book.service.BookDeleteMultiple(deleteMulti)
+	if errDel != nil {
+		resErr := helper.APIResponse("Delete book failed", http.StatusBadRequest, "error", gin.H{"is_deleted": boolean, "error": errDel.Error()})
+		ctx.JSON(http.StatusBadRequest, resErr)
+		return
+	}
+
+	response := helper.APIResponse("Deleted book success", http.StatusOK, "success", gin.H{"is_deleted": boolean, "error": ""})
+	ctx.JSON(http.StatusOK, response)
 }

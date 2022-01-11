@@ -19,6 +19,14 @@ type BookUpdateRequest struct {
 	Slug        string `form:"slug" json:"-"`
 }
 
+type BookUpdateMultipleRequest struct {
+	ID          int    `form:"idbook" json:"idbook" `
+	Title       string `form:"title" json:"title"`
+	Description string `form:"description" json:"description"`
+	Slug        string `form:"slug" json:"-"`
+	UserID      int64  `form:"user_id" json:"-"`
+}
+
 type GetBookResponse struct {
 	ID          uint64 `json:"id"`
 	Title       string `json:"title"`
@@ -32,4 +40,8 @@ type User struct {
 	ID    uint64 `json:"iduser"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type BookDeleteMultiple struct {
+	ID uint `form:"idbook" json:"idbook"`
 }

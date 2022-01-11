@@ -19,3 +19,11 @@ func BookValidationUpdate(dto dto.BookUpdateRequest) error {
 		validation.Field(&dto.Description, validation.Required.Error("Description is Required")),
 	)
 }
+
+func BookValidationUpdateMultiple(dto dto.BookUpdateMultipleRequest) error {
+	return validation.ValidateStruct(&dto,
+		validation.Field(&dto.ID, validation.Required.Error("ID book is Required")),
+		validation.Field(&dto.Title, validation.Required.Error("Title is Required")),
+		validation.Field(&dto.Description, validation.Required.Error("Description is Required")),
+	)
+}

@@ -55,9 +55,11 @@ func main() {
 		authRoutes.GET("books", bookControoller.GetBooks)
 		authRoutes.POST("books/create-new", bookControoller.CreateBook)
 		authRoutes.POST("books/create-new-multiple", bookControoller.CreateBookMultiple)
+		authRoutes.POST("books/update-multiple", bookControoller.UpdateBookMultiple)
 		authRoutes.GET("books/:id", bookControoller.FindByIdBook)
 		authRoutes.POST("books/:id/update", bookControoller.UpdateBook)
 		authRoutes.DELETE("books/:id/delete", bookControoller.DeleteBook)
+		authRoutes.DELETE("books/delete-multiple", bookControoller.DeleteBookMultiple)
 
 	}
 	router.Run(":3000")

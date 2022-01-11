@@ -1,6 +1,7 @@
 package serviceimplbook
 
 import (
+	"errors"
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/book"
@@ -72,10 +73,14 @@ func (s *Service) BookFindByID(idbook int) (dto.GetBookResponse, error) {
 	return dtoBook, nil
 }
 
-func (s *Service) BookUpdated(idbook int, dto dto.BookUpdateRequest) error {
+func (s *Service) BookUpdated(idbook int, currentLogged int, dto dto.BookUpdateRequest) error {
 	updateBook, err := s.repo.FindByIDBook(int(idbook))
 	if err != nil {
 		return err
+	}
+
+	if uint64(updateBook.UserID) != uint64(currentLogged) {
+		return errors.New("permission denied")
 	}
 	updateBook.ID = uint64(idbook)
 	updateBook.Title = dto.Title
@@ -84,6 +89,24 @@ func (s *Service) BookUpdated(idbook int, dto dto.BookUpdateRequest) error {
 	updatedErr := s.repo.UpdateBook(updateBook)
 	if updatedErr != nil {
 		return updatedErr
+	}
+	return nil
+}
+
+func (s *Service) BookUpdatedMultiple(dto []dto.BookUpdateMultipleRequest) error {
+	for _, updRequest := range dto {
+		updMultiple, err := s.repo.FindByIDBook(updRequest.ID)
+		if err != nil {
+			return err
+		}
+		updMultiple.Title = updRequest.Title
+		updMultiple.Description = updRequest.Description
+		updMultiple.Slug = slug.Make(updRequest.Title)
+		updMultiple.UserID = uint(updRequest.UserID)
+		updatedBookErr := s.repo.UpdateBook(updMultiple)
+		if updatedBookErr != nil {
+			return updatedBookErr
+		}
 	}
 	return nil
 }
@@ -98,6 +121,23 @@ func (s *Service) BookDelete(idbook int) error {
 		return delBook
 	}
 	return nil
+}
+
+func (s *Service) BookDeleteMultiple(dto []dto.BookDeleteMultiple) (bool, error) {
+	for _, del := range dto {
+
+		findBook, err := s.repo.FindByIDBook(int(del.ID))
+		if err != nil {
+			return false, err
+		}
+
+		resultErr := s.repo.DeleteBook(findBook)
+		if resultErr != nil {
+			return false, resultErr
+		}
+	}
+
+	return true, nil
 }
 
 func (s *Service) mapBookFindIDentitytoDTO(ent entity.Book) dto.GetBookResponse {
