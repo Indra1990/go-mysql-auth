@@ -60,3 +60,8 @@ func (r *GormRepositoryBook) DeleteBook(ent entity.Book) error {
 	delete := r.db.Delete(&ent)
 	return delete.Error
 }
+
+func (r *GormRepositoryBook) DeleteBookMultiple(ents []entity.Book, idbooks []uint) error {
+	delete := r.db.Delete(&ents, idbooks)
+	return delete.Error
+}

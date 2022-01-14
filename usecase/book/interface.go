@@ -13,6 +13,7 @@ type Repository interface {
 	FindByIDBook(idbook int) (entity.Book, error)
 	UpdateBook(ent entity.Book) error
 	DeleteBook(ent entity.Book) error
+	DeleteBookMultiple(ent []entity.Book, idbooks []uint) error
 }
 
 type Service interface {

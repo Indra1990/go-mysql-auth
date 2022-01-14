@@ -13,6 +13,7 @@ type Repository interface {
 	Update(ent entity.User) error
 	Delete(id uint64) error
 	EmailExist(email string) bool
+	FindIDUserLanguage(id int) (entity.Languages, error)
 }
 
 type Service interface {
@@ -23,4 +24,5 @@ type Service interface {
 	DeleteUser(dto dto.GetUserByIDRequest) error
 	CheckEmailExist(email string) bool
 	ExtractToken(r *http.Request) string
+	UserLanguageFindByID(id int) error
 }

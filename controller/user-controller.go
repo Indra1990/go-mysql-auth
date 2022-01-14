@@ -85,6 +85,15 @@ func (u userController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	for _, lang := range dto.LanguageMany {
+		errLang := u.service.UserLanguageFindByID(int(lang.ID))
+		if errLang != nil {
+			errValidateLang := helper.APIResponse("user failed create", http.StatusUnprocessableEntity, "error", gin.H{"error": errLang.Error() + " id: " + strconv.FormatUint(uint64(lang.ID), 10)})
+			ctx.JSON(http.StatusUnprocessableEntity, errValidateLang)
+			return
+		}
+	}
+
 	userCreated, userCreatedErr := u.service.CreateUser(dto)
 	if userCreatedErr != nil {
 		errValidate := helper.APIResponse("user failed create", http.StatusUnprocessableEntity, "error", userCreatedErr)

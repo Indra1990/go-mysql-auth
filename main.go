@@ -9,6 +9,8 @@ import (
 	"go-mysql-api/usecase/auth/serviceauth"
 	"go-mysql-api/usecase/book/repoimplbook"
 	"go-mysql-api/usecase/book/serviceimplbook"
+	"go-mysql-api/usecase/languages/repolanguages"
+	"go-mysql-api/usecase/languages/servicelanguages"
 	"go-mysql-api/usecase/user/repoimpl"
 	"go-mysql-api/usecase/user/serviceimpl"
 	"net/http"
@@ -38,6 +40,10 @@ func main() {
 	bookService := serviceimplbook.NewServiceBook(bookRepo)
 	bookControoller := controller.NewBookController(bookService)
 
+	langRepo := repolanguages.NewGormRepositoryLanguages(db)
+	langService := servicelanguages.NewServiceLanguages(langRepo)
+	langController := controller.NewLanguagesController(*langService)
+
 	router := gin.Default()
 	router.POST("/api/v1/register", authController.Register)
 	router.POST("/api/v1/login", authController.Login)
@@ -60,6 +66,9 @@ func main() {
 		authRoutes.POST("books/:id/update", bookControoller.UpdateBook)
 		authRoutes.DELETE("books/:id/delete", bookControoller.DeleteBook)
 		authRoutes.DELETE("books/delete-multiple", bookControoller.DeleteBookMultiple)
+		// language
+		authRoutes.GET("lang/", langController.GetlistLang)
+		authRoutes.POST("lang/create-new", langController.CreateLang)
 
 	}
 	router.Run(":3000")

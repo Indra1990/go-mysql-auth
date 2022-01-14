@@ -48,6 +48,14 @@ func SetupDatabaseConnection() *gorm.DB {
 	if !db.Migrator().HasTable("books") {
 		db.Migrator().CreateTable(&entity.Book{})
 	}
+
+	if !db.Migrator().HasTable("language") {
+		db.Migrator().CreateTable(&entity.Languages{})
+	}
+
+	if !db.Migrator().HasTable("user_language") {
+		db.Migrator().CreateTable(&entity.User_Language{})
+	}
 	return db
 }
 

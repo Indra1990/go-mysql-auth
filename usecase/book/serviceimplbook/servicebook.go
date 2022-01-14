@@ -124,19 +124,26 @@ func (s *Service) BookDelete(idbook int) error {
 }
 
 func (s *Service) BookDeleteMultiple(dto []dto.BookDeleteMultiple) (bool, error) {
-	for _, del := range dto {
+	var books []entity.Book
+	indx := make([]uint, len(dto))
 
+	for _, del := range dto {
 		findBook, err := s.repo.FindByIDBook(int(del.ID))
 		if err != nil {
 			return false, err
 		}
 
-		resultErr := s.repo.DeleteBook(findBook)
-		if resultErr != nil {
-			return false, resultErr
+		result := entity.Book{
+			ID: findBook.ID,
 		}
+		indx = append(indx, del.ID)
+		books = append(books, result)
 	}
 
+	errDelbook := s.repo.DeleteBookMultiple(books, indx)
+	if errDelbook != nil {
+		return false, errDelbook
+	}
 	return true, nil
 }
 

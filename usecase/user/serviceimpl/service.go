@@ -1,6 +1,7 @@
 package serviceimpl
 
 import (
+	"errors"
 	"go-mysql-api/dto"
 	"go-mysql-api/entity"
 	"go-mysql-api/usecase/user"
@@ -45,11 +46,21 @@ func (s *Service) mapUserEntitiesToGetResponseDTOs(ents []entity.User) ([]dto.Ge
 			resultbook = append(resultbook, listBook)
 		}
 
+		resultLanguage := []dto.UserLanguageResponse{}
+		for _, lang := range usr.Languages {
+			listLanguage := dto.UserLanguageResponse{
+				ID:   lang.ID,
+				Name: lang.Name,
+			}
+			resultLanguage = append(resultLanguage, listLanguage)
+		}
+
 		listUser := dto.GetUserResponse{
-			ID:    usr.ID,
-			Name:  usr.Name,
-			Email: usr.Email,
-			Books: resultbook,
+			ID:        usr.ID,
+			Name:      usr.Name,
+			Email:     usr.Email,
+			Books:     resultbook,
+			Languages: resultLanguage,
 		}
 		result = append(result, listUser)
 	}
@@ -85,17 +96,40 @@ func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResp
 
 // save to db
 func (s *Service) CreateUser(dto dto.UserCreateRequest) (dto.GetUserResponse, error) {
-	userCreate := entity.User{}
-	userCreate.Name = dto.Name
-	userCreate.Email = dto.Email
+	arr := []entity.Languages{}
+	for _, val := range dto.LanguageMany {
+		result := entity.Languages{
+			ID: val.ID,
+		}
+		arr = append(arr, result)
+	}
+
 	password, _ := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.MinCost)
-	userCreate.Password = string(password)
+	userCreate := entity.User{
+		Name:      dto.Name,
+		Email:     dto.Email,
+		Password:  string(password),
+		Languages: arr,
+	}
+
 	user, err := s.repo.Create(userCreate)
-	ent := s.mapUserCreateEntityTODTO(user)
+	ent, errMap := s.mapUserCreateEntityTODTO(user)
 	if err != nil {
-		return ent, err
+		return ent, errMap
 	}
 	return ent, nil
+}
+
+func (s *Service) UserLanguageFindByID(id int) error {
+	data, errlang := s.repo.FindIDUserLanguage(id)
+	if errlang != nil {
+		return errlang
+	}
+	if data.ID == 0 {
+		return errors.New("not found language")
+	}
+	return nil
+
 }
 
 // check email already exist
@@ -108,12 +142,23 @@ func (s *Service) CheckEmailExist(email string) bool {
 }
 
 // map dto to entity create user
-func (s *Service) mapUserCreateEntityTODTO(ent entity.User) dto.GetUserResponse {
-	return dto.GetUserResponse{
-		ID:    ent.ID,
-		Name:  ent.Name,
-		Email: ent.Email,
+func (s *Service) mapUserCreateEntityTODTO(ent entity.User) (dto.GetUserResponse, error) {
+	var strSlice = []dto.UserLanguageResponse{}
+	for _, lang := range ent.Languages {
+		findLanguage, _ := s.repo.FindIDUserLanguage(int(lang.ID))
+
+		result := dto.UserLanguageResponse{
+			ID:   lang.ID,
+			Name: findLanguage.Name,
+		}
+		strSlice = append(strSlice, result)
 	}
+	return dto.GetUserResponse{
+		ID:        ent.ID,
+		Name:      ent.Name,
+		Email:     ent.Email,
+		Languages: strSlice,
+	}, nil
 
 }
 

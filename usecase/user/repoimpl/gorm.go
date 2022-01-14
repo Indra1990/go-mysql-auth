@@ -24,7 +24,7 @@ func (r *GormRepository) Create(ent entity.User) (entity.User, error) {
 
 func (r *GormRepository) List() ([]entity.User, error) {
 	var ents []entity.User
-	result := r.db.Preload("Books").Find(&ents)
+	result := r.db.Preload("Books").Preload("Languages").Find(&ents)
 	return ents, result.Error
 }
 
@@ -51,4 +51,13 @@ func (r *GormRepository) EmailExist(email string) bool {
 		return true
 	}
 	return false
+}
+
+func (r *GormRepository) FindIDUserLanguage(id int) (entity.Languages, error) {
+	var ent entity.Languages
+	err := r.db.Where("id", id).Find(&ent).Error
+	if err != nil {
+		return ent, err
+	}
+	return ent, nil
 }

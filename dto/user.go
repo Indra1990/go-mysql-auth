@@ -1,9 +1,14 @@
 package dto
 
 type UserCreateRequest struct {
-	Name     string `form:"name" json:"name"`
-	Email    string `form:"email" json:"email"`
-	Password string `form:"password" json:"password"`
+	Name         string         `form:"name" json:"name"`
+	Email        string         `form:"email" json:"email"`
+	Password     string         `form:"password" json:"password"`
+	LanguageMany []LanguageMany `form:"lang" json:"language"`
+}
+
+type LanguageMany struct {
+	ID uint `form:"lang_id" json:"lang_id"`
 }
 
 type GetAuthUserResponse struct {
@@ -14,10 +19,16 @@ type GetAuthUserResponse struct {
 }
 
 type GetUserResponse struct {
-	ID    uint64         `json:"id"`
-	Name  string         `json:"name"`
-	Email string         `json:"email"`
-	Books []BookResponse `json:"books,omitempty"`
+	ID        uint64                 `json:"id"`
+	Name      string                 `json:"name"`
+	Email     string                 `json:"email"`
+	Books     []BookResponse         `json:"books,omitempty"`
+	Languages []UserLanguageResponse `json:"language,omitempty"`
+}
+
+type UserLanguageResponse struct {
+	ID   uint   `json:"language_id"`
+	Name string `json:"lang_name"`
 }
 
 type BookResponse struct {
