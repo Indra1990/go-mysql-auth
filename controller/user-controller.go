@@ -115,10 +115,34 @@ func (u userController) UpdateUser(ctx *gin.Context) {
 
 	var dto dto.UserUpdateRequest
 	ctx.Bind(&dto)
-	dto.ID = id
-	u.service.UpdateUser(dto)
+	if updReqaErr := validatorimpl.ValidationUpdateUser(dto); updReqaErr != nil {
+		resErr := helper.APIResponse("user update failed", http.StatusUnprocessableEntity, "error", updReqaErr)
+		ctx.JSON(http.StatusUnprocessableEntity, resErr)
+		return
+	}
 
-	res := helper.APIResponse("updated user", http.StatusOK, "success", dto)
+	if languagesErr := validatorimpl.ValidationUserLanguage(dto.LanguageMany); languagesErr != nil {
+		resErr := helper.APIResponse("user update failed", http.StatusUnprocessableEntity, "error", languagesErr)
+		ctx.JSON(http.StatusUnprocessableEntity, resErr)
+		return
+	}
+
+	for _, lang := range dto.LanguageMany {
+		errLang := u.service.UserLanguageFindByID(int(lang.ID))
+		if errLang != nil {
+			errValidateLang := helper.APIResponse("user update failed", http.StatusUnprocessableEntity, "error", gin.H{"error": errLang.Error() + " id: " + strconv.FormatUint(uint64(lang.ID), 10)})
+			ctx.JSON(http.StatusUnprocessableEntity, errValidateLang)
+			return
+		}
+	}
+
+	updUser, updUserErr := u.service.UpdateUser(dto, int64(id))
+	if updUserErr != nil {
+		resErr := helper.APIResponse("user update failed", http.StatusUnprocessableEntity, "error", updUserErr.Error)
+		ctx.JSON(http.StatusUnprocessableEntity, resErr)
+		return
+	}
+	res := helper.APIResponse("updated user", http.StatusOK, "success", updUser)
 	ctx.JSON(http.StatusOK, res)
 }
 

@@ -162,21 +162,50 @@ func (s *Service) mapUserCreateEntityTODTO(ent entity.User) (dto.GetUserResponse
 
 }
 
-func (s *Service) UpdateUser(dto dto.UserUpdateRequest) error {
-	ent := s.mapUserUpdateRequestDTOtoEntity(dto)
-	err := s.repo.Update(ent)
-	if err != nil {
-		return err
+func (s *Service) UpdateUser(dto dto.UserUpdateRequest, id int64) (dto.GetUserResponse, error) {
+	arr := []entity.Languages{}
+	for _, lang := range dto.LanguageMany {
+		if checkMany := s.repo.CheckManyUserLanguage(int(id), int(lang.ID)); checkMany {
+			resultMany := entity.Languages{
+				ID: uint(lang.ID),
+			}
+			arr = append(arr, resultMany)
+		}
+
 	}
 
-	return nil
+	usr, err := s.repo.FindById(uint64(id))
+	dtoUser := s.mapUserEntityToGetUserByIDDTO(usr)
+	if err != nil {
+		return dtoUser, err
+	}
+	usr.Name = dto.Name
+	usr.Email = dto.Email
+	usr.Languages = arr
+	dtoUpdate, dtoUpdateErr := s.repo.Update(usr)
+	if dtoUpdateErr != nil {
+		return dtoUser, dtoUpdateErr
+	}
+	ent := s.mapUserUpdateRequestDTOtoEntity(dtoUpdate)
+	return ent, nil
+
 }
 
-func (s *Service) mapUserUpdateRequestDTOtoEntity(dto dto.UserUpdateRequest) entity.User {
-	return entity.User{
-		ID:    dto.ID,
-		Name:  dto.Name,
-		Email: dto.Email,
+func (s *Service) mapUserUpdateRequestDTOtoEntity(ent entity.User) dto.GetUserResponse {
+	var dtoLanguages []dto.UserLanguageResponse
+	for _, lang := range ent.Languages {
+		langFind, _ := s.repo.FindIDUserLanguage(int(lang.ID))
+		resultLang := dto.UserLanguageResponse{
+			ID:   lang.ID,
+			Name: langFind.Name,
+		}
+		dtoLanguages = append(dtoLanguages, resultLang)
+	}
+	return dto.GetUserResponse{
+		ID:        ent.ID,
+		Name:      ent.Name,
+		Email:     ent.Email,
+		Languages: dtoLanguages,
 	}
 }
 

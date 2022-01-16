@@ -28,11 +28,12 @@ func SetupDatabaseConnection() *gorm.DB {
 		logger.Config{
 			IgnoreRecordNotFoundError: false, // Ignore ErrRecordNotFound error for logger
 			// SlowThreshold:             time.Second,   // Slow SQL threshold
-			// LogLevel:                  logger.Silent, // Log level
+			LogLevel: logger.Silent, // Log level
 			// Colorful:                  false,         // Disable color
+			// Logger: logger.Default.LogMode(logger.Info),
 		},
 	)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
+	dsn := fmt.Sprintf("%s:%s#@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbName)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})

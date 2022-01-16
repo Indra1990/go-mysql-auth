@@ -34,9 +34,12 @@ func (r *GormRepository) FindById(id uint64) (entity.User, error) {
 	return ent, result.Error
 }
 
-func (r *GormRepository) Update(ent entity.User) error {
-	result := r.db.Model(&ent).Updates(ent)
-	return result.Error
+func (r *GormRepository) Update(ent entity.User) (entity.User, error) {
+	result := r.db.Save(&ent).Error
+	if result != nil {
+		return ent, result
+	}
+	return ent, nil
 }
 
 func (r *GormRepository) Delete(id uint64) error {
@@ -60,4 +63,12 @@ func (r *GormRepository) FindIDUserLanguage(id int) (entity.Languages, error) {
 		return ent, err
 	}
 	return ent, nil
+}
+
+func (r *GormRepository) CheckManyUserLanguage(iduser int, idlanguage int) bool {
+	var userLang entity.User_Language
+	if row := r.db.Where("user_id = ? AND languages_id = ?", iduser, idlanguage).First(&userLang); row.RowsAffected == 0 {
+		return true
+	}
+	return false
 }

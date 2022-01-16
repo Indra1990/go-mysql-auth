@@ -7,7 +7,7 @@ type CreateLanguageRequest struct {
 type GetLanguageListResponse struct {
 	ID   int             `json:"id"`
 	Name string          `json:"name"`
-	User []UserLanguages `json:"users"`
+	User []UserLanguages `json:"users,omitempty"`
 }
 
 type UserLanguages struct {

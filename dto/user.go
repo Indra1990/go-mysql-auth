@@ -4,7 +4,14 @@ type UserCreateRequest struct {
 	Name         string         `form:"name" json:"name"`
 	Email        string         `form:"email" json:"email"`
 	Password     string         `form:"password" json:"password"`
-	LanguageMany []LanguageMany `form:"lang" json:"language"`
+	LanguageMany []LanguageMany `form:"language" json:"language"`
+}
+
+type UserUpdateRequest struct {
+	ID           uint64         `json:"id"`
+	Name         string         `form:"name" json:"name"`
+	Email        string         `form:"email" json:"email"`
+	LanguageMany []LanguageMany `form:"language" json:"language"`
 }
 
 type LanguageMany struct {
@@ -40,12 +47,6 @@ type BookResponse struct {
 
 type GetUserByIDRequest struct {
 	ID uint64 `json:"id"`
-}
-
-type UserUpdateRequest struct {
-	ID    uint64
-	Name  string `form:"name"`
-	Email string `form:"email"`
 }
 
 type GetAuthUserRequest struct {
