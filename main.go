@@ -13,6 +13,7 @@ import (
 	"go-mysql-api/usecase/languages/servicelanguages"
 	"go-mysql-api/usecase/user/repoimpl"
 	"go-mysql-api/usecase/user/serviceimpl"
+	"go-mysql-api/usecase/userlanguage/repouserlanguage"
 	"net/http"
 	"strings"
 
@@ -32,8 +33,10 @@ func main() {
 	authService := serviceauth.NewAuthService(authRepo)
 	authController := controller.NewAuthController(authService)
 
+	userLanguageRepo := repouserlanguage.NewGormRepository(db)
+
 	userRepo := repoimpl.NewGormRepository(db)
-	userService := serviceimpl.NewService(userRepo)
+	userService := serviceimpl.NewService(userRepo, userLanguageRepo)
 	userController := controller.NewUserController(userService)
 
 	bookRepo := repoimplbook.NewGormRepositoryBook(db)
