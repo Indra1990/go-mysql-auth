@@ -86,11 +86,21 @@ func (s *Service) mapUserEntityToGetUserByIDDTO(ent entity.User) dto.GetUserResp
 
 		resultBook = append(resultBook, result)
 	}
+	resultLanguages := []dto.UserLanguageResponse{}
+	for _, lang := range ent.Languages {
+		langua := dto.UserLanguageResponse{
+			ID:   lang.ID,
+			Name: lang.Name,
+		}
+
+		resultLanguages = append(resultLanguages, langua)
+	}
 	return dto.GetUserResponse{
-		ID:    ent.ID,
-		Name:  ent.Name,
-		Email: ent.Email,
-		Books: resultBook,
+		ID:        ent.ID,
+		Name:      ent.Name,
+		Email:     ent.Email,
+		Books:     resultBook,
+		Languages: resultLanguages,
 	}
 }
 
@@ -162,16 +172,33 @@ func (s *Service) mapUserCreateEntityTODTO(ent entity.User) (dto.GetUserResponse
 
 }
 
+func (s *Service) UserLanguageDelete(iduser uint, idlanguage []uint) (bool, error) {
+	for _, idlang := range idlanguage {
+		err := s.repo.DeleteUserLanguages(iduser, idlang)
+		if err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
 func (s *Service) UpdateUser(dto dto.UserUpdateRequest, id int64) (dto.GetUserResponse, error) {
+	if len(dto.LanguageMany) > 0 {
+		dtoDel, err := s.deleteUserLanguages(uint64(id), dto)
+		if err != nil {
+			return dtoDel, err
+		}
+	}
 	arr := []entity.Languages{}
+	xDtoDisplay := []int{}
 	for _, lang := range dto.LanguageMany {
+		xDtoDisplay = append(xDtoDisplay, int(lang.ID))
 		if checkMany := s.repo.CheckManyUserLanguage(int(id), int(lang.ID)); checkMany {
 			resultMany := entity.Languages{
 				ID: uint(lang.ID),
 			}
 			arr = append(arr, resultMany)
 		}
-
 	}
 
 	usr, err := s.repo.FindById(uint64(id))
@@ -186,17 +213,46 @@ func (s *Service) UpdateUser(dto dto.UserUpdateRequest, id int64) (dto.GetUserRe
 	if dtoUpdateErr != nil {
 		return dtoUser, dtoUpdateErr
 	}
-	ent := s.mapUserUpdateRequestDTOtoEntity(dtoUpdate)
+	ent := s.mapUserUpdateRequestDTOtoEntity(dtoUpdate, xDtoDisplay)
 	return ent, nil
-
 }
 
-func (s *Service) mapUserUpdateRequestDTOtoEntity(ent entity.User) dto.GetUserResponse {
+func (s *Service) deleteUserLanguages(id uint64, dto dto.UserUpdateRequest) (dto.GetUserResponse, error) {
+	diff := []uint{}
+	find, err := s.repo.FindById(uint64(id))
+	findEntityDto := s.mapUserEntityToGetUserByIDDTO(find)
+	if err != nil {
+		return findEntityDto, err
+	}
+	for _, langEnt := range find.Languages {
+		found := false
+		for _, langDto := range dto.LanguageMany {
+			if langDto.ID == langEnt.ID {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			diff = append(diff, uint(langEnt.ID))
+		}
+	}
+
+	for _, idDiff := range diff {
+		err := s.repo.DeleteUserLanguages(uint(find.ID), idDiff)
+		if err != nil {
+			return findEntityDto, err
+		}
+	}
+	return findEntityDto, nil
+}
+
+func (s *Service) mapUserUpdateRequestDTOtoEntity(ent entity.User, idLanguaages []int) dto.GetUserResponse {
 	var dtoLanguages []dto.UserLanguageResponse
-	for _, lang := range ent.Languages {
-		langFind, _ := s.repo.FindIDUserLanguage(int(lang.ID))
+	for _, id := range idLanguaages {
+		langFind, _ := s.repo.FindIDUserLanguage(int(id))
 		resultLang := dto.UserLanguageResponse{
-			ID:   lang.ID,
+			ID:   langFind.ID,
 			Name: langFind.Name,
 		}
 		dtoLanguages = append(dtoLanguages, resultLang)

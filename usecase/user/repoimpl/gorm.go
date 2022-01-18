@@ -30,7 +30,7 @@ func (r *GormRepository) List() ([]entity.User, error) {
 
 func (r *GormRepository) FindById(id uint64) (entity.User, error) {
 	var ent entity.User
-	result := r.db.First(&ent, id)
+	result := r.db.Model(&ent).Where("id = ? ", id).Preload("Languages").Find(&ent)
 	return ent, result.Error
 }
 
@@ -71,4 +71,10 @@ func (r *GormRepository) CheckManyUserLanguage(iduser int, idlanguage int) bool 
 		return true
 	}
 	return false
+}
+
+func (r *GormRepository) DeleteUserLanguages(iduser uint, idlanguage uint) error {
+	var userLang entity.User_Language
+	err := r.db.Where("user_id = ? AND languages_id = ?", iduser, idlanguage).Delete(&userLang)
+	return err.Error
 }

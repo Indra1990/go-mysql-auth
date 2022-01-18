@@ -15,6 +15,7 @@ type Repository interface {
 	EmailExist(email string) bool
 	FindIDUserLanguage(id int) (entity.Languages, error)
 	CheckManyUserLanguage(iduser int, idlanguage int) bool
+	DeleteUserLanguages(iduser uint, idlanguage uint) error
 }
 
 type Service interface {
@@ -26,5 +27,6 @@ type Service interface {
 	CheckEmailExist(email string) bool
 	ExtractToken(r *http.Request) string
 	UserLanguageFindByID(id int) error
+	UserLanguageDelete(iduser uint, idlanguage []uint) (bool, error)
 	// Check() bool
 }
