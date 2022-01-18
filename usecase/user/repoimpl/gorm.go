@@ -44,6 +44,16 @@ func (r *GormRepository) Update(ent entity.User) (entity.User, error) {
 
 func (r *GormRepository) Delete(id uint64) error {
 	var ent entity.User
+	dataDelte, err := r.FindById(id)
+	if err != nil {
+		return err
+	}
+	// delete assosiation
+	errAsso := r.db.Model(&dataDelte).Association("Languages").Delete(dataDelte.Languages)
+	if err != nil {
+		return errAsso
+	}
+	// delete user find
 	result := r.db.Delete(&ent, id)
 	return result.Error
 }
